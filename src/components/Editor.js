@@ -1,5 +1,11 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { useRef, useEffect } from 'react'
+import PrettierWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/prettier.worker.js'
+import { createWorkerQueue } from '../utils/createWorkerQueue'
+
+const HTML_URI = 'file:///index.html'
+const CSS_URI = 'file:///main.css'
+const CONFIG_URI = 'file:///tailwind.config.js'
 
 export default function Editor({ content = {}, onChange = () => {} }) {
   const editorContainerRef = useRef()
@@ -7,6 +13,8 @@ export default function Editor({ content = {}, onChange = () => {} }) {
 
   const documents = useRef({})
   const preventUpdate = useRef(false)
+
+  const prettierWorker = useRef()
 
   useEffect(() => {
     function onResize() {
@@ -21,7 +29,7 @@ export default function Editor({ content = {}, onChange = () => {} }) {
   }, [])
 
   useEffect(() => {
-    const listeners = []
+    const disposables = []
 
     function onDidChangeContent() {
       if (preventUpdate.current) return
@@ -32,38 +40,89 @@ export default function Editor({ content = {}, onChange = () => {} }) {
       })
     }
 
+    const formattingEditProvider = {
+      async provideDocumentFormattingEdits(model, options, token) {
+        if (!prettierWorker.current) {
+          prettierWorker.current = createWorkerQueue(PrettierWorker)
+        }
+        const { canceled, error, pretty } = await prettierWorker.current.emit({
+          text: model.getValue(),
+          language: model.getModeId(),
+        })
+        if (canceled || error) return []
+        return [
+          {
+            range: model.getFullModelRange(),
+            text: pretty,
+          },
+        ]
+      },
+    }
+
+    // override the built-in HTML formatter
+    const _registerDocumentFormattingEditProvider =
+      monaco.languages.registerDocumentFormattingEditProvider
+    monaco.languages.registerDocumentFormattingEditProvider = (
+      id,
+      provider
+    ) => {
+      if (id !== 'html') {
+        return _registerDocumentFormattingEditProvider(id, provider)
+      }
+      return _registerDocumentFormattingEditProvider(
+        'html',
+        formattingEditProvider
+      )
+    }
+    disposables.push(
+      monaco.languages.registerDocumentFormattingEditProvider(
+        'css',
+        formattingEditProvider
+      )
+    )
+    disposables.push(
+      monaco.languages.registerDocumentFormattingEditProvider(
+        'javascript',
+        formattingEditProvider
+      )
+    )
+
     editorRef.current = monaco.editor.create(editorContainerRef.current, {
       minimap: { enabled: false },
     })
+    disposables.push(editorRef.current)
+
+    editorRef.current._standaloneKeybindingService.addDynamicKeybinding(
+      '-editor.action.formatDocument'
+    )
+    editorRef.current._standaloneKeybindingService.addDynamicKeybinding(
+      'editor.action.formatDocument',
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+    )
 
     documents.current.html = {
-      model: monaco.editor.createModel(
-        content.html || '',
-        'html',
-        'file:///index.html'
-      ),
+      model: monaco.editor.createModel(content.html || '', 'html', HTML_URI),
     }
-    listeners.push(
+    disposables.push(documents.current.html.model)
+    disposables.push(
       documents.current.html.model.onDidChangeContent(onDidChangeContent)
     )
     documents.current.css = {
-      model: monaco.editor.createModel(
-        content.css || '',
-        'css',
-        'file:///main.css'
-      ),
+      model: monaco.editor.createModel(content.css || '', 'css', CSS_URI),
     }
-    listeners.push(
+    disposables.push(documents.current.css.model)
+    disposables.push(
       documents.current.css.model.onDidChangeContent(onDidChangeContent)
     )
     documents.current.config = {
       model: monaco.editor.createModel(
         content.config || '',
         'javascript',
-        'file:///tailwind.config.js'
+        CONFIG_URI
       ),
     }
-    listeners.push(
+    disposables.push(documents.current.config.model)
+    disposables.push(
       documents.current.config.model.onDidChangeContent(onDidChangeContent)
     )
 
@@ -90,19 +149,21 @@ export default function Editor({ content = {}, onChange = () => {} }) {
       typeRoots: ['node_modules/@types'],
     })
 
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(
-      'export interface Config { theme: string }',
-      'file:///node_modules/@types/tailwindcss/index.d.ts'
+    disposables.push(
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(
+        'export interface Config { theme: string }',
+        'file:///node_modules/@types/tailwindcss/index.d.ts'
+      )
     )
 
     editorRef.current.setModel(documents.current.html.model)
 
     return () => {
-      editorRef.current.dispose()
-      documents.current.html.model.dispose()
-      documents.current.css.model.dispose()
-      documents.current.config.model.dispose()
-      listeners.forEach((listener) => listener.dispose())
+      disposables.forEach((disposable) => disposable.dispose())
+
+      if (prettierWorker.current) {
+        prettierWorker.current.terminate()
+      }
     }
   }, [])
 

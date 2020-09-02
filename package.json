@@ -14,6 +14,7 @@
     "next-transpile-modules": "^3.2.0",
     "p-queue": "^6.6.1",
     "postcss": "^7.0.32",
+    "prettier": "^2.1.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "simple-functional-loader": "^1.2.1",
