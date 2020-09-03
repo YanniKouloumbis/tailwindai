@@ -6,8 +6,18 @@
     "start": "next start"
   },
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "2.x",
+    "@typescript-eslint/parser": "2.x",
+    "babel-eslint": "10.x",
     "debounce": "^1.2.0",
     "es-module-lexer": "^0.3.25",
+    "eslint": "6.x",
+    "eslint-config-react-app": "^5.2.1",
+    "eslint-plugin-flowtype": "4.x",
+    "eslint-plugin-import": "2.x",
+    "eslint-plugin-jsx-a11y": "6.x",
+    "eslint-plugin-react": "7.x",
+    "eslint-plugin-react-hooks": "2.x",
     "lz-string": "^1.4.4",
     "monaco-editor": "^0.20.0",
     "monaco-editor-webpack-plugin": "^1.9.0",
