@@ -51,7 +51,7 @@ addEventListener('message', async (event) => {
           const result = await self.importShim('https://cdn.skypack.dev/' + m)
           return result.default || result
         }
-        ${event.data.config.replace(/(^|\s)require\(/g, '$1await require(')}
+        ${event.data.config.replace(/\brequire\(/g, 'await require(')}
       })(mod)
     `)
   } catch (_) {
