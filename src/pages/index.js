@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Worker from 'worker-loader?filename=static/[name].[hash].js!../workers/postcss.worker.js'
 import CompressWorker from 'worker-loader?filename=static/[name].[hash].js!../workers/compress.worker.js'
 import dynamic from 'next/dynamic'
 import LZString from 'lz-string'
 import { createWorkerQueue } from '../utils/createWorkerQueue'
+import { debounce } from 'debounce'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
 
@@ -27,32 +28,35 @@ export default function App() {
   const previewRef = useRef()
   const worker = useRef()
   const compressWorker = useRef()
-  const [content, setContent] = useState()
-  const [debouncedContent, setDebouncedContent] = useState()
-  const initialUpdate = useRef(true)
+  const [initialContent, setInitialContent] = useState()
 
   useEffect(() => {
     worker.current = createWorkerQueue(Worker)
     compressWorker.current = createWorkerQueue(CompressWorker)
 
+    const content = defaultContent
+
     if (window.location.hash) {
       try {
-        const {
-          html = defaultContent.html,
-          css = defaultContent.css,
-          config = defaultContent.config,
-        } = JSON.parse(
-          LZString.decompressFromEncodedURIComponent(
-            window.location.hash.substr(1)
+        Object.assign(
+          content,
+          JSON.parse(
+            LZString.decompressFromEncodedURIComponent(
+              window.location.hash.substr(1)
+            )
           )
         )
-        setContent({ html, css, config })
-      } catch (_) {
-        setContent(defaultContent)
-      }
-    } else {
-      setContent(defaultContent)
+      } catch (_) {}
     }
+
+    setInitialContent({
+      html: content.html,
+      css: content.css,
+      config: content.config,
+    })
+
+    injectHtml(content.html)
+    compileNow(content)
 
     return () => {
       worker.current.terminate()
@@ -60,82 +64,59 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => {
-    if (
-      typeof debouncedContent?.css === 'undefined' ||
-      typeof debouncedContent?.config === 'undefined'
-    ) {
-      return
-    }
-    let current = true
-    worker.current
-      .emit({
-        config: debouncedContent.config,
-        css: debouncedContent.css,
-      })
-      .then(({ css, canceled, error }) => {
-        if (!current || canceled || error) {
-          return
-        }
-        if (css) {
-          previewRef.current.contentWindow.postMessage({ css })
-        }
-      })
-    return () => (current = false)
-  }, [debouncedContent?.css, debouncedContent?.config])
-
-  useEffect(() => {
-    if (
-      typeof debouncedContent?.html === 'undefined' ||
-      typeof debouncedContent?.css === 'undefined' ||
-      typeof debouncedContent?.config === 'undefined'
-    ) {
-      return
-    }
-    let current = true
-    compressWorker.current
-      .emit({
-        string: JSON.stringify(debouncedContent),
-      })
-      .then(({ compressed, canceled, error }) => {
-        if (!current || canceled || error) {
-          return
-        }
-        if (compressed) {
-          window.history.replaceState({}, '', `#${compressed}`)
-        }
-      })
-    return () => (current = false)
-  }, [debouncedContent?.html, debouncedContent?.css, debouncedContent?.config])
-
-  useEffect(() => {
-    if (typeof content?.html === 'undefined') return
+  const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
-      html: content.html,
+      html,
     })
-  }, [content?.html])
+  }, [])
 
-  useEffect(() => {
-    if (!content) return
-    if (initialUpdate.current) {
-      setDebouncedContent(content)
-      initialUpdate.current = false
+  const compileNow = useCallback(async (content) => {
+    const { css, canceled, error } = await worker.current.emit({
+      config: content.config,
+      css: content.css,
+    })
+    if (canceled || error) {
       return
     }
-    const handler = window.setTimeout(() => {
-      setDebouncedContent(content)
-    }, 200)
-    return () => {
-      window.clearTimeout(handler)
+    if (css) {
+      previewRef.current.contentWindow.postMessage({ css })
     }
-  }, [content?.html, content?.css, content?.config])
+  }, [])
+
+  const compile = useCallback(debounce(compileNow, 200), [])
+
+  const updateUrl = useCallback(async (content) => {
+    let { compressed, canceled, error } = await compressWorker.current.emit({
+      string: JSON.stringify(content),
+    })
+    if (canceled || error) {
+      return
+    }
+    if (compressed) {
+      window.history.replaceState({}, '', `#${compressed}`)
+    }
+  }, [])
+
+  const onChange = useCallback(
+    (document, content) => {
+      if (document === 'html') {
+        injectHtml(content.html)
+      } else {
+        compile({ css: content.css, config: content.config })
+      }
+      updateUrl(content)
+    },
+    [injectHtml, compile, updateUrl]
+  )
 
   return (
     <>
       <div className="relative flex h-full">
         <div className="w-1/2 flex-none flex">
           <div className="flex flex-col w-full">
-            {content && <Editor onChange={setContent} content={content} />}
+            {initialContent && (
+              <Editor initialContent={initialContent} onChange={onChange} />
+            )}
           </div>
         </div>
         <div className="relative w-1/2 flex-none">

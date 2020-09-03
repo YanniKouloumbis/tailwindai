@@ -1,5 +1,5 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import PrettierWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/prettier.worker.js'
 import { createWorkerQueue } from '../utils/createWorkerQueue'
 
@@ -7,14 +7,24 @@ const HTML_URI = 'file:///index.html'
 const CSS_URI = 'file:///main.css'
 const CONFIG_URI = 'file:///tailwind.config.js'
 
-export default function Editor({ content = {}, onChange = () => {} }) {
+export default function Editor({ initialContent = {}, onChange = () => {} }) {
   const editorContainerRef = useRef()
   const editorRef = useRef()
-
   const documents = useRef({})
-  const preventUpdate = useRef(false)
-
   const prettierWorker = useRef()
+
+  const triggerOnChange = useCallback(
+    (document) => {
+      if (onChange) {
+        onChange(document, {
+          html: documents.current.html.model.getValue(),
+          css: documents.current.css.model.getValue(),
+          config: documents.current.config.model.getValue(),
+        })
+      }
+    },
+    [onChange]
+  )
 
   useEffect(() => {
     function onResize() {
@@ -31,17 +41,8 @@ export default function Editor({ content = {}, onChange = () => {} }) {
   useEffect(() => {
     const disposables = []
 
-    function onDidChangeContent() {
-      if (preventUpdate.current) return
-      onChange({
-        html: documents.current.html.model.getValue(),
-        css: documents.current.css.model.getValue(),
-        config: documents.current.config.model.getValue(),
-      })
-    }
-
     const formattingEditProvider = {
-      async provideDocumentFormattingEdits(model, options, token) {
+      async provideDocumentFormattingEdits(model, _options, _token) {
         if (!prettierWorker.current) {
           prettierWorker.current = createWorkerQueue(PrettierWorker)
         }
@@ -101,29 +102,43 @@ export default function Editor({ content = {}, onChange = () => {} }) {
     )
 
     documents.current.html = {
-      model: monaco.editor.createModel(content.html || '', 'html', HTML_URI),
+      model: monaco.editor.createModel(
+        initialContent.html || '',
+        'html',
+        HTML_URI
+      ),
     }
     disposables.push(documents.current.html.model)
     disposables.push(
-      documents.current.html.model.onDidChangeContent(onDidChangeContent)
+      documents.current.html.model.onDidChangeContent(() => {
+        triggerOnChange('html')
+      })
     )
     documents.current.css = {
-      model: monaco.editor.createModel(content.css || '', 'css', CSS_URI),
+      model: monaco.editor.createModel(
+        initialContent.css || '',
+        'css',
+        CSS_URI
+      ),
     }
     disposables.push(documents.current.css.model)
     disposables.push(
-      documents.current.css.model.onDidChangeContent(onDidChangeContent)
+      documents.current.css.model.onDidChangeContent(() => {
+        triggerOnChange('css')
+      })
     )
     documents.current.config = {
       model: monaco.editor.createModel(
-        content.config || '',
+        initialContent.config || '',
         'javascript',
         CONFIG_URI
       ),
     }
     disposables.push(documents.current.config.model)
     disposables.push(
-      documents.current.config.model.onDidChangeContent(onDidChangeContent)
+      documents.current.config.model.onDidChangeContent(() => {
+        triggerOnChange('config')
+      })
     )
 
     monaco.languages.css.cssDefaults.setDiagnosticsOptions({
@@ -165,45 +180,7 @@ export default function Editor({ content = {}, onChange = () => {} }) {
         prettierWorker.current.terminate()
       }
     }
-  }, [])
-
-  useEffect(() => {
-    preventUpdate.current = true
-    if (content.html !== documents.current.html.model.getValue()) {
-      documents.current.html.model.pushEditOperations(
-        [],
-        [
-          {
-            range: documents.current.html.model.getFullModelRange(),
-            text: content.html,
-          },
-        ]
-      )
-    }
-    if (content.css !== documents.current.css.model.getValue()) {
-      documents.current.css.model.pushEditOperations(
-        [],
-        [
-          {
-            range: documents.current.css.model.getFullModelRange(),
-            text: content.css,
-          },
-        ]
-      )
-    }
-    if (content.config !== documents.current.config.model.getValue()) {
-      documents.current.config.model.pushEditOperations(
-        [],
-        [
-          {
-            range: documents.current.config.model.getFullModelRange(),
-            text: content.config,
-          },
-        ]
-      )
-    }
-    preventUpdate.current = false
-  }, [content.html, content.css, content.config])
+  }, [initialContent, triggerOnChange])
 
   function switchTab(document) {
     const currentState = editorRef.current.saveViewState()
