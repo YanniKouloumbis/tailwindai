@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import LZString from 'lz-string'
 import { createWorkerQueue } from '../utils/createWorkerQueue'
 import { debounce } from 'debounce'
+import SplitPane from 'react-split-pane'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
 
@@ -28,6 +29,8 @@ export default function App() {
   const worker = useRef()
   const compressWorker = useRef()
   const [initialContent, setInitialContent] = useState()
+  const [size, setSize] = useState()
+  const [resizing, setResizing] = useState(false)
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -99,8 +102,12 @@ export default function App() {
       config: content.config,
     })
 
-    injectHtml(content.html)
-    compileNow(content)
+    const windowWidth = window.innerWidth
+    setSize({
+      initial: windowWidth / 2,
+      min: 320,
+      max: windowWidth - 320,
+    })
 
     return () => {
       worker.current.terminate()
@@ -108,48 +115,70 @@ export default function App() {
     }
   }, [compileNow, injectHtml])
 
-  return (
-    <>
-      <div className="relative flex h-full">
-        <div className="w-1/2 flex-none flex">
-          <div className="flex flex-col w-full">
-            {initialContent && (
-              <Editor initialContent={initialContent} onChange={onChange} />
-            )}
-          </div>
-        </div>
-        <div className="relative w-1/2 flex-none">
-          <iframe
-            ref={previewRef}
-            title="Preview"
-            className="absolute inset-0 w-full h-full"
-            srcDoc={`<!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <style id="_style"></style>
-                <script>
-                window.addEventListener('message', (e) => {
-                  if ('css' in e.data) {
-                    const style = document.getElementById('_style')
-                    const newStyle = document.createElement('style')
-                    newStyle.id = '_style'
-                    newStyle.innerHTML = e.data.css
-                    style.parentNode.replaceChild(newStyle, style)
-                  }
-                  if ('html' in e.data) {
-                    document.body.innerHTML = e.data.html
-                  }
-                })
-                </script>
-              </head>
-              <body>
-              </body>
-            </html>`}
-          />
-        </div>
-      </div>
-    </>
-  )
+  useEffect(() => {
+    function onResize() {
+      setSize((size) => ({ ...size, max: window.innerWidth - 320 }))
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (resizing) {
+      document.body.classList.add('cursor-col-resize')
+    } else {
+      document.body.classList.remove('cursor-col-resize')
+    }
+  }, [resizing])
+
+  return initialContent && size ? (
+    <SplitPane
+      split="vertical"
+      minSize={size.min}
+      maxSize={size.max}
+      defaultSize={size.initial}
+      pane1Style={{ display: 'flex', flexDirection: 'column' }}
+      onDragStarted={() => setResizing(true)}
+      onDragFinished={() => setResizing(false)}
+    >
+      <Editor initialContent={initialContent} onChange={onChange} />
+      <iframe
+        ref={previewRef}
+        title="Preview"
+        className={`absolute inset-0 w-full h-full ${
+          resizing ? 'pointer-events-none' : ''
+        }`}
+        onLoad={() => {
+          injectHtml(initialContent.html)
+          compileNow(initialContent)
+        }}
+        srcDoc={`<!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style id="_style"></style>
+              <script>
+              window.addEventListener('message', (e) => {
+                if ('css' in e.data) {
+                  const style = document.getElementById('_style')
+                  const newStyle = document.createElement('style')
+                  newStyle.id = '_style'
+                  newStyle.innerHTML = e.data.css
+                  style.parentNode.replaceChild(newStyle, style)
+                }
+                if ('html' in e.data) {
+                  document.body.innerHTML = e.data.html
+                }
+              })
+              </script>
+            </head>
+            <body>
+            </body>
+          </html>`}
+      />
+    </SplitPane>
+  ) : null
 }

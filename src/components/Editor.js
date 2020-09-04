@@ -7,18 +7,6 @@ export default function Editor({ initialContent = {}, onChange }) {
   const editorState = useRef({})
 
   useEffect(() => {
-    function onResize() {
-      if (editorRef.current) {
-        editorRef.current.editor.layout()
-      }
-    }
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('resize', onResize)
-    }
-  }, [])
-
-  useEffect(() => {
     editorRef.current = createMonacoEditor({
       container: editorContainerRef.current,
       initialContent,
@@ -47,6 +35,17 @@ export default function Editor({ initialContent = {}, onChange }) {
     editor.restoreViewState(editorState.current[document])
     editor.focus()
   }
+
+  // TODO: polyfill?
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      window.setTimeout(() => editorRef.current.editor.layout(), 0)
+    })
+    observer.observe(editorContainerRef.current)
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   return (
     <>
