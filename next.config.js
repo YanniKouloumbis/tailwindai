@@ -32,16 +32,10 @@ module.exports = withTM({
     config.plugins.push(
       new MonacoWebpackPlugin({
         languages: [
-          'json',
-          'markdown',
           'css',
           'typescript',
           'javascript',
           'html',
-          'graphql',
-          'python',
-          'scss',
-          'yaml',
         ],
         filename: 'static/[name].worker.js',
       })

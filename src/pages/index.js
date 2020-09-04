@@ -20,8 +20,7 @@ const defaultContent = {
   </div>
 </div>\n`,
   css: '@tailwind base;\n@tailwind components;\n@tailwind utilities;\n',
-  config:
-    "/** @type {import('tailwindcss').Config} */\nmodule.exports = {\n  theme: {\n    //\n  }\n}\n",
+  config: 'module.exports = {\n  theme: {\n    //\n  }\n}\n',
 }
 
 export default function App() {
@@ -29,40 +28,6 @@ export default function App() {
   const worker = useRef()
   const compressWorker = useRef()
   const [initialContent, setInitialContent] = useState()
-
-  useEffect(() => {
-    worker.current = createWorkerQueue(Worker)
-    compressWorker.current = createWorkerQueue(CompressWorker)
-
-    const content = defaultContent
-
-    if (window.location.hash) {
-      try {
-        Object.assign(
-          content,
-          JSON.parse(
-            LZString.decompressFromEncodedURIComponent(
-              window.location.hash.substr(1)
-            )
-          )
-        )
-      } catch (_) {}
-    }
-
-    setInitialContent({
-      html: content.html,
-      css: content.css,
-      config: content.config,
-    })
-
-    injectHtml(content.html)
-    compileNow(content)
-
-    return () => {
-      worker.current.terminate()
-      compressWorker.current.terminate()
-    }
-  }, [])
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -108,6 +73,40 @@ export default function App() {
     },
     [injectHtml, compile, updateUrl]
   )
+
+  useEffect(() => {
+    worker.current = createWorkerQueue(Worker)
+    compressWorker.current = createWorkerQueue(CompressWorker)
+
+    const content = defaultContent
+
+    if (window.location.hash) {
+      try {
+        Object.assign(
+          content,
+          JSON.parse(
+            LZString.decompressFromEncodedURIComponent(
+              window.location.hash.substr(1)
+            )
+          )
+        )
+      } catch (_) {}
+    }
+
+    setInitialContent({
+      html: content.html,
+      css: content.css,
+      config: content.config,
+    })
+
+    injectHtml(content.html)
+    compileNow(content)
+
+    return () => {
+      worker.current.terminate()
+      compressWorker.current.terminate()
+    }
+  }, [compileNow, injectHtml])
 
   return (
     <>

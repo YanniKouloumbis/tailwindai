@@ -4695,6 +4695,14 @@ randomfill@^1.0.3:
     randombytes "^2.0.5"
     safe-buffer "^5.1.0"
 
+raw-loader@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/raw-loader/-/raw-loader-4.0.1.tgz#14e1f726a359b68437e183d5a5b7d33a3eba6933"
+  integrity sha512-baolhQBSi3iNh1cglJjA0mYzga+wePk7vdEX//1dTFd+v4TsQlQE0jitJSNF1OIP82rdYulH7otaVmdlDaJ64A==
+  dependencies:
+    loader-utils "^2.0.0"
+    schema-utils "^2.6.5"
+
 react-dom@16.13.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.13.1.tgz#c1bd37331a0486c078ee54c4740720993b2e0e7f"
@@ -5082,7 +5090,7 @@ schema-utils@^1.0.0:
     ajv-errors "^1.0.0"
     ajv-keywords "^3.1.0"
 
-schema-utils@^2.0.1, schema-utils@^2.6.0, schema-utils@^2.6.1, schema-utils@^2.7.0:
+schema-utils@^2.0.1, schema-utils@^2.6.0, schema-utils@^2.6.1, schema-utils@^2.6.5, schema-utils@^2.7.0:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-2.7.1.tgz#1ca4f32d1b24c590c203b8e7a50bf0ea4cd394d7"
   integrity sha512-SHiNtMOUGWBQJwzISiVYKu82GiV4QYGePp3odlY1tuKO7gPtphAT5R/py0fA6xtbgLL/RvtJZnU9b8s0F1q0Xg==
