@@ -126,12 +126,15 @@ export default function App() {
             srcDoc={`<!DOCTYPE html>
             <html lang="en">
               <head>
-                <style></style>
+                <style id="_style"></style>
                 <script>
-                const style = document.querySelector('style')
                 window.addEventListener('message', (e) => {
                   if ('css' in e.data) {
-                    style.innerHTML = e.data.css
+                    const style = document.getElementById('_style')
+                    const newStyle = document.createElement('style')
+                    newStyle.id = '_style'
+                    newStyle.innerHTML = e.data.css
+                    style.parentNode.replaceChild(newStyle, style)
                   }
                   if ('html' in e.data) {
                     document.body.innerHTML = e.data.html
