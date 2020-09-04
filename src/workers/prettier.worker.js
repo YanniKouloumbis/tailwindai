@@ -6,7 +6,7 @@ const options = {
     plugins: [await import('prettier/parser-html')],
     printWidth: 10000,
   }),
-  css: async () => ({
+  tailwindcss: async () => ({
     parser: 'css',
     plugins: [await import('prettier/parser-postcss')],
     printWidth: 100,

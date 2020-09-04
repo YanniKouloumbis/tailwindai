@@ -48,6 +48,18 @@ module.exports = withTM({
     }
 
     config.module.rules.push({
+      test: /language\/css\/cssWorker\.js$/,
+      use: [
+        createLoader(function (source) {
+          return source.replace(
+            "case 'css':",
+            "case 'css':\ncase 'tailwindcss':"
+          )
+        }),
+      ],
+    })
+
+    config.module.rules.push({
       test: /tailwindcss\/lib\/plugins\/preflight\.js$/,
       use: [
         createLoader(function (source) {

@@ -8,6 +8,15 @@ import { setupJavaScriptMode } from './javascript'
 export function createMonacoEditor({ container, initialContent, onChange }) {
   const disposables = []
 
+  window.MonacoEnvironment.getWorkerUrl = (_moduleId, label) => {
+    if (label === 'css' || label === 'tailwindcss')
+      return '_next/static/css.worker.js'
+    if (label === 'html') return '_next/static/html.worker.js'
+    if (label === 'typescript' || label === 'javascript')
+      return '_next/static/ts.worker.js'
+    return '_next/static/editor.worker.js'
+  }
+
   disposables.push(registerDocumentFormattingEditProviders())
 
   const html = setupHtmlMode(initialContent.html, () => {
@@ -104,7 +113,7 @@ function registerDocumentFormattingEditProviders() {
   }
   disposables.push(
     monaco.languages.registerDocumentFormattingEditProvider(
-      'css',
+      'tailwindcss',
       formattingEditProvider
     )
   )
