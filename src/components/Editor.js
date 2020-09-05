@@ -1,10 +1,11 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { createMonacoEditor } from '../monaco'
 
 export default function Editor({ initialContent = {}, onChange }) {
   const editorContainerRef = useRef()
   const editorRef = useRef()
   const editorState = useRef({})
+  const [activeTab, setActiveTab] = useState('html')
 
   useEffect(() => {
     editorRef.current = createMonacoEditor({
@@ -18,7 +19,19 @@ export default function Editor({ initialContent = {}, onChange }) {
     }
   }, [initialContent, onChange])
 
-  function switchTab(document) {
+  // TODO: polyfill?
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      window.setTimeout(() => editorRef.current.editor.layout(), 0)
+    })
+    observer.observe(editorContainerRef.current)
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
+  // TODO: prevent initial run?
+  useEffect(() => {
     const { editor, models } = editorRef.current
     const currentState = editor.saveViewState()
     const currentModel = editor.getModel()
@@ -31,32 +44,39 @@ export default function Editor({ initialContent = {}, onChange }) {
       editorState.current.config = currentState
     }
 
-    editor.setModel(models[document])
-    editor.restoreViewState(editorState.current[document])
+    editor.setModel(models[activeTab])
+    editor.restoreViewState(editorState.current[activeTab])
     editor.focus()
-  }
-
-  // TODO: polyfill?
-  useEffect(() => {
-    const observer = new ResizeObserver(() => {
-      window.setTimeout(() => editorRef.current.editor.layout(), 0)
-    })
-    observer.observe(editorContainerRef.current)
-    return () => {
-      observer.disconnect()
-    }
-  }, [])
+  }, [activeTab])
 
   return (
     <>
-      <div className="flex flex-none p-5 space-x-5">
-        <button type="button" onClick={() => switchTab('html')}>
+      <div className="flex flex-none px-8 py-2 space-x-3 border-b border-gray-200">
+        <button
+          type="button"
+          className={`rounded-md text-sm leading-6 font-medium px-2 ${
+            activeTab === 'html' ? 'text-black bg-gray-100' : 'text-gray-500'
+          }`}
+          onClick={() => setActiveTab('html')}
+        >
           HTML
         </button>
-        <button type="button" onClick={() => switchTab('css')}>
+        <button
+          type="button"
+          className={`rounded-md text-sm leading-6 font-medium px-2 ${
+            activeTab === 'css' ? 'text-black bg-gray-100' : 'text-gray-500'
+          }`}
+          onClick={() => setActiveTab('css')}
+        >
           CSS
         </button>
-        <button type="button" onClick={() => switchTab('config')}>
+        <button
+          type="button"
+          className={`rounded-md text-sm leading-6 font-medium px-2 ${
+            activeTab === 'config' ? 'text-black bg-gray-100' : 'text-gray-500'
+          }`}
+          onClick={() => setActiveTab('config')}
+        >
           Config
         </button>
       </div>

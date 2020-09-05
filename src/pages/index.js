@@ -6,6 +6,7 @@ import LZString from 'lz-string'
 import { createWorkerQueue } from '../utils/createWorkerQueue'
 import { debounce } from 'debounce'
 import SplitPane from 'react-split-pane'
+import { Logo } from '../components/Logo'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
 
@@ -133,28 +134,34 @@ export default function App() {
     }
   }, [resizing])
 
-  return initialContent && size ? (
-    <SplitPane
-      split="vertical"
-      minSize={size.min}
-      maxSize={size.max}
-      defaultSize={size.initial}
-      pane1Style={{ display: 'flex', flexDirection: 'column' }}
-      onDragStarted={() => setResizing(true)}
-      onDragFinished={() => setResizing(false)}
-    >
-      <Editor initialContent={initialContent} onChange={onChange} />
-      <iframe
-        ref={previewRef}
-        title="Preview"
-        className={`absolute inset-0 w-full h-full ${
-          resizing ? 'pointer-events-none' : ''
-        }`}
-        onLoad={() => {
-          injectHtml(initialContent.html)
-          compileNow(initialContent)
-        }}
-        srcDoc={`<!DOCTYPE html>
+  return (
+    <>
+      <header className="py-5 px-8 shadow">
+        <Logo />
+      </header>
+      <main>
+        {initialContent && size ? (
+          <SplitPane
+            split="vertical"
+            minSize={size.min}
+            maxSize={size.max}
+            defaultSize={size.initial}
+            pane1Style={{ display: 'flex', flexDirection: 'column' }}
+            onDragStarted={() => setResizing(true)}
+            onDragFinished={() => setResizing(false)}
+          >
+            <Editor initialContent={initialContent} onChange={onChange} />
+            <iframe
+              ref={previewRef}
+              title="Preview"
+              className={`absolute inset-0 w-full h-full ${
+                resizing ? 'pointer-events-none' : ''
+              }`}
+              onLoad={() => {
+                injectHtml(initialContent.html)
+                compileNow(initialContent)
+              }}
+              srcDoc={`<!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
@@ -178,7 +185,10 @@ export default function App() {
             <body>
             </body>
           </html>`}
-      />
-    </SplitPane>
-  ) : null
+            />
+          </SplitPane>
+        ) : null}
+      </main>
+    </>
+  )
 }

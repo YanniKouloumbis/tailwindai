@@ -1,5 +1,6 @@
 module.exports = {
   experimental: {
-    uniformColorPalette: true
-  }
+    uniformColorPalette: true,
+    extendedSpacingScale: true,
+  },
 }

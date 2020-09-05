@@ -35,6 +35,7 @@ export function createMonacoEditor({ container, initialContent, onChange }) {
   disposables.push(config)
 
   const editor = monaco.editor.create(container, {
+    fontSize: 14,
     minimap: { enabled: false },
   })
   disposables.push(editor)
