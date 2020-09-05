@@ -10,7 +10,7 @@ export default class Document extends NextDocument {
     return (
       <Html lang="en" className="h-full">
         <Head />
-        <body className="min-h-full grid">
+        <body className="min-h-full flex">
           <Main />
           <NextScript />
         </body>

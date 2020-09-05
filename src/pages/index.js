@@ -136,10 +136,10 @@ export default function App() {
 
   return (
     <>
-      <header className="py-5 px-8 shadow">
+      <header className="flex-none py-5 px-8 shadow">
         <Logo />
       </header>
-      <main>
+      <main className="flex-auto relative">
         {initialContent && size ? (
           <SplitPane
             split="vertical"
