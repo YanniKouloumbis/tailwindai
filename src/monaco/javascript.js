@@ -10,6 +10,7 @@ export function setupJavaScriptMode(content, onChange) {
     'javascript',
     'file:///tailwind.config.js'
   )
+  model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
 
   const proxyModel = monaco.editor.createModel(
@@ -17,6 +18,7 @@ export function setupJavaScriptMode(content, onChange) {
     'javascript',
     'file:///tailwind.config.proxy.js'
   )
+  proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(proxyModel)
 
   disposables.push(

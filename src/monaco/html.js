@@ -8,6 +8,7 @@ export function setupHtmlMode(content, onChange) {
     'html',
     'file:///index.html'
   )
+  model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
   disposables.push(model.onDidChangeContent(onChange))
 

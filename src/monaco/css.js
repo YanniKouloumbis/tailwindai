@@ -59,6 +59,7 @@ export function setupCssMode(content, onChange) {
     'tailwindcss',
     'file:///main.css'
   )
+  model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
 
   const proxyModel = monaco.editor.createModel(
@@ -66,6 +67,7 @@ export function setupCssMode(content, onChange) {
     'tailwindcss',
     'file:///main.proxy.css'
   )
+  proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(proxyModel)
 
   disposables.push(
