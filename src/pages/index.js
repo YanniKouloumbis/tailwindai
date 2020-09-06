@@ -136,7 +136,7 @@ export default function App() {
 
   return (
     <>
-      <header className="flex-none py-5 px-8 shadow">
+      <header className="relative z-10 flex-none py-5 px-8 shadow">
         <Logo />
       </header>
       <main className="flex-auto relative">
