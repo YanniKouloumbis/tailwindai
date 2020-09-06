@@ -54,8 +54,10 @@ export default function Editor({ initialContent = {}, onChange }) {
       <div className="flex flex-none px-8 py-2 space-x-3 border-b border-gray-200">
         <button
           type="button"
-          className={`rounded-md text-sm leading-6 font-medium px-2 ${
-            activeTab === 'html' ? 'text-black bg-gray-100' : 'text-gray-500'
+          className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+            activeTab === 'html'
+              ? 'text-black bg-gray-100 focus:bg-gray-200'
+              : 'text-gray-500 focus:text-black'
           }`}
           onClick={() => setActiveTab('html')}
         >
@@ -63,8 +65,10 @@ export default function Editor({ initialContent = {}, onChange }) {
         </button>
         <button
           type="button"
-          className={`rounded-md text-sm leading-6 font-medium px-2 ${
-            activeTab === 'css' ? 'text-black bg-gray-100' : 'text-gray-500'
+          className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+            activeTab === 'css'
+              ? 'text-black bg-gray-100 focus:bg-gray-200'
+              : 'text-gray-500 focus:text-black'
           }`}
           onClick={() => setActiveTab('css')}
         >
@@ -72,8 +76,10 @@ export default function Editor({ initialContent = {}, onChange }) {
         </button>
         <button
           type="button"
-          className={`rounded-md text-sm leading-6 font-medium px-2 ${
-            activeTab === 'config' ? 'text-black bg-gray-100' : 'text-gray-500'
+          className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+            activeTab === 'config'
+              ? 'text-black bg-gray-100 focus:bg-gray-200'
+              : 'text-gray-500 focus:text-black'
           }`}
           onClick={() => setActiveTab('config')}
         >
