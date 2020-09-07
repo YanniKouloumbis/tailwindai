@@ -1,6 +1,11 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { setupMode } from 'monaco-editor/esm/vs/language/css/cssMode'
-import { DiagnosticsAdapter } from 'monaco-editor/esm/vs/language/css/languageFeatures'
+import {
+  DiagnosticsAdapter,
+  CompletionAdapter,
+  DocumentColorAdapter,
+  HoverAdapter,
+} from 'monaco-editor/esm/vs/language/css/languageFeatures'
 import { LanguageServiceDefaultsImpl } from 'monaco-editor/esm/vs/language/css/monaco.contribution'
 import * as cssService from 'monaco-editor/esm/vs/language/css/_deps/vscode-css-languageservice/cssLanguageService'
 
@@ -27,6 +32,47 @@ export function setupCssMode(content, onChange) {
     })
   )
 
+  const _provideCompletionItems =
+    CompletionAdapter.prototype.provideCompletionItems
+  CompletionAdapter.prototype.provideCompletionItems = function (
+    originalModel,
+    ...rest
+  ) {
+    if (!this._provideCompletionItems) {
+      this._provideCompletionItems = _provideCompletionItems.bind(this)
+    }
+    return this._provideCompletionItems(
+      originalModel === model ? proxyModel : originalModel,
+      ...rest
+    )
+  }
+
+  const _provideDocumentColors =
+    DocumentColorAdapter.prototype.provideDocumentColors
+  DocumentColorAdapter.prototype.provideDocumentColors = function (
+    originalModel,
+    ...rest
+  ) {
+    if (!this._provideDocumentColors) {
+      this._provideDocumentColors = _provideDocumentColors.bind(this)
+    }
+    return this._provideDocumentColors(
+      originalModel === model ? proxyModel : originalModel,
+      ...rest
+    )
+  }
+
+  const _provideHover = HoverAdapter.prototype.provideHover
+  HoverAdapter.prototype.provideHover = function (originalModel, ...rest) {
+    if (!this._provideHover) {
+      this._provideHover = _provideHover.bind(this)
+    }
+    return this._provideHover(
+      originalModel === model ? proxyModel : originalModel,
+      ...rest
+    )
+  }
+
   DiagnosticsAdapter.prototype._doValidate = function (resource, languageId) {
     this._worker(resource)
       .then(function (worker) {
@@ -45,7 +91,13 @@ export function setupCssMode(content, onChange) {
           monaco.editor.setModelMarkers(
             model,
             languageId,
-            markers.filter((marker) => marker.code !== 'unknownAtRules')
+            markers.filter(
+              (marker) =>
+                marker.code !== 'unknownAtRules' ||
+                !/@(tailwind|screen|responsive|variants|layer|___)$/.test(
+                  marker.message
+                )
+            )
           )
         }
       })
@@ -436,10 +488,19 @@ function toDiagnostics(resource, diag) {
 function augmentCss(css) {
   return css
     .replace(
-      /@apply[^;}]+[;}]/,
-      (m) => '--a:1;' + m.substr(6).replace(/./g, ' ')
+      /@apply[^;}]+[;}]/g,
+      (m) => '@___{}' + m.substr(6).replace(/./g, ' ')
     )
     .replace(/@screen([^{]{2,})\{/g, (_m, p1) => {
       return `@media(_)${' '.repeat(p1.length - 2)}{`
+    })
+    .replace(/@variants(\s[^{]+)\{/g, (_m, p1) => {
+      return `@media(_)${' '.repeat(p1.length)}{`
+    })
+    .replace(/@responsive(\s*)\{/g, (_m, p1) => {
+      return `@media(_)  ${' '.repeat(p1.length)}{`
+    })
+    .replace(/@layer([^{]{3,})\{/g, (_m, p1) => {
+      return `@media(_)${' '.repeat(p1.length - 3)}{`
     })
 }
