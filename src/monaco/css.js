@@ -152,6 +152,7 @@ const language = {
       ['[@](screen)', { token: 'keyword', next: '@screenheader' }],
       ['[@](variants)', { token: 'keyword', next: '@variantsheader' }],
       ['[@](responsive)', { token: 'keyword', next: '@responsiveheader' }],
+      ['[@](layer)', { token: 'keyword', next: '@layerheader' }],
       ['[@](page|content|font-face|-moz-document)', { token: 'keyword' }],
       [
         '[@](charset|namespace)',
@@ -304,6 +305,11 @@ const language = {
       [';', 'delimiter', '@pop'],
     ],
     screenheader: [
+      { include: '@comments' },
+      ['@identifier', 'attribute.value'],
+      ['{', { token: 'delimiter.bracket', switchTo: '@selector' }],
+    ],
+    layerheader: [
       { include: '@comments' },
       ['@identifier', 'attribute.value'],
       ['{', { token: 'delimiter.bracket', switchTo: '@selector' }],
