@@ -3,4 +3,5 @@ module.exports = {
     uniformColorPalette: true,
     extendedSpacingScale: true,
   },
+  purge: ['./src/**/*.js'],
 }
