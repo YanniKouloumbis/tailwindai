@@ -22,7 +22,7 @@ export default function Editor({
     return () => {
       editorRef.current.dispose()
     }
-  }, [initialContent, onChange])
+  }, [initialContent, onChange, worker])
 
   // TODO: polyfill?
   useEffect(() => {
