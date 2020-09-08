@@ -71,7 +71,7 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
   return {
     model,
     dispose() {
-      disposables.forEach((disposable) => disposable.dispose())
+      disposables.forEach(async (disposable) => (await disposable).dispose())
     },
   }
 }

@@ -46,6 +46,11 @@ export function setupCssMode(content, onChange) {
       ...rest
     )
   }
+  disposables.push({
+    dispose() {
+      CompletionAdapter.prototype.provideCompletionItems = _provideCompletionItems
+    },
+  })
 
   const _provideDocumentColors =
     DocumentColorAdapter.prototype.provideDocumentColors
@@ -61,6 +66,11 @@ export function setupCssMode(content, onChange) {
       ...rest
     )
   }
+  disposables.push({
+    dispose() {
+      DocumentColorAdapter.prototype.provideDocumentColors = _provideDocumentColors
+    },
+  })
 
   const _provideHover = HoverAdapter.prototype.provideHover
   HoverAdapter.prototype.provideHover = function (originalModel, ...rest) {
@@ -72,6 +82,11 @@ export function setupCssMode(content, onChange) {
       ...rest
     )
   }
+  disposables.push({
+    dispose() {
+      HoverAdapter.prototype.provideHover = _provideHover
+    },
+  })
 
   DiagnosticsAdapter.prototype._doValidate = function (resource, languageId) {
     this._worker(resource)

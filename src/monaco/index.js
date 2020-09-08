@@ -51,8 +51,6 @@ export function createMonacoEditor({
   })
   disposables.push(editor)
 
-  editor.setModel(html.model)
-
   setupKeybindings(editor)
 
   function triggerOnChange(id, newContent) {

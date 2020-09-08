@@ -1,50 +1,43 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import { SuggestAdapter as DefaultSuggestAdapter } from 'monaco-editor/esm/vs/language/typescript/languageFeatures'
+import { SuggestAdapter } from 'monaco-editor/esm/vs/language/typescript/languageFeatures'
 import types from '!!raw-loader!../monaco/types.d.ts'
+import { DiagnosticsAdapter } from 'monaco-editor/esm/vs/language/typescript/languageFeatures'
 
 export function setupJavaScriptMode(content, onChange) {
   const disposables = []
 
-  const model = monaco.editor.createModel(
-    content || '',
-    'javascript',
-    'file:///tailwind.config.js'
-  )
-  model.updateOptions({ indentSize: 2, tabSize: 2 })
-  disposables.push(model)
-
-  const proxyModel = monaco.editor.createModel(
-    content || '',
-    'javascript',
-    'file:///tailwind.config.proxy.js'
-  )
-  proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
-  disposables.push(proxyModel)
-
-  disposables.push(
-    model.onDidChangeContent(() => {
-      onChange()
-      proxyModel.setValue(addTypeAnnotationToJs(model.getValue()))
-    })
-  )
-
-  const _registerCompletionItemProvider =
-    monaco.languages.registerCompletionItemProvider
-  monaco.languages.registerCompletionItemProvider = async (
-    language,
-    adapter
-  ) => {
-    if (adapter instanceof DefaultSuggestAdapter) {
-      return _registerCompletionItemProvider(
-        language,
-        new SuggestAdapter(
-          await monaco.languages.typescript.getJavaScriptWorker(),
-          proxyModel
-        )
-      )
-    }
-    return _registerCompletionItemProvider(language, adapter)
+  const _doValidate = DiagnosticsAdapter.prototype._doValidate
+  DiagnosticsAdapter.prototype._doValidate = function (originalModel) {
+    return _doValidate.bind(this)(
+      originalModel === model ? proxyModel : originalModel
+    )
   }
+  disposables.push({
+    dispose() {
+      DiagnosticsAdapter.prototype._doValidate = _doValidate
+    },
+  })
+
+  const _setModelMarkers = monaco.editor.setModelMarkers
+  monaco.editor.setModelMarkers = (originalModel, owner, markers) => {
+    return _setModelMarkers(
+      originalModel === proxyModel ? model : originalModel,
+      owner,
+      originalModel === proxyModel
+        ? markers.map((marker) => ({
+            ...marker,
+            startLineNumber: marker.startLineNumber - 1,
+            endLineNumber: marker.startLineNumber - 1,
+            relatedInformation: [],
+          }))
+        : markers
+    )
+  }
+  disposables.push({
+    dispose() {
+      monaco.editor.setModelMarkers = _setModelMarkers
+    },
+  })
 
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
@@ -72,38 +65,72 @@ export function setupJavaScriptMode(content, onChange) {
     )
   )
 
+  const model = monaco.editor.createModel(
+    content || '',
+    'javascript',
+    'file:///tailwind.config.js'
+  )
+  model.updateOptions({ indentSize: 2, tabSize: 2 })
+  disposables.push(model)
+
+  const proxyModel = monaco.editor.createModel(
+    addTypeAnnotationToJs(content || ''),
+    'javascript',
+    'file:///tailwind.config.proxy.js'
+  )
+  proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
+  disposables.push(proxyModel)
+
+  disposables.push(
+    model.onDidChangeContent(() => {
+      onChange()
+      proxyModel.setValue(addTypeAnnotationToJs(model.getValue()))
+    })
+  )
+
+  const _provideCompletionItems =
+    SuggestAdapter.prototype.provideCompletionItems
+  SuggestAdapter.prototype.provideCompletionItems = async function (
+    originalModel,
+    position,
+    ...rest
+  ) {
+    if (!this._provideCompletionItems) {
+      this._provideCompletionItems = _provideCompletionItems.bind(this)
+    }
+    const result = await this._provideCompletionItems(
+      originalModel === model ? proxyModel : originalModel,
+      originalModel === model ? position.delta(1) : position,
+      ...rest
+    )
+    if (!result) return result
+    return {
+      suggestions:
+        originalModel === model
+          ? result.suggestions.map((suggestion) => ({
+              ...suggestion,
+              uri: model.uri,
+              range: new monaco.Range(
+                suggestion.range.startLineNumber - 1,
+                suggestion.range.startColumn,
+                suggestion.range.endLineNumber - 1,
+                suggestion.range.endColumn
+              ),
+            }))
+          : result.suggestions,
+    }
+  }
+  disposables.push({
+    dispose() {
+      SuggestAdapter.prototype.provideCompletionItems = _provideCompletionItems
+    },
+  })
+
   return {
     model,
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
     },
-  }
-}
-
-class SuggestAdapter extends DefaultSuggestAdapter {
-  constructor(worker, model) {
-    super(worker)
-    this.model = model
-  }
-  async provideCompletionItems(model, position, ...rest) {
-    const result = await super.provideCompletionItems(
-      this.model,
-      position.delta(1),
-      ...rest
-    )
-    if (!result) return result
-    return {
-      suggestions: result.suggestions.map((suggestion) => ({
-        ...suggestion,
-        uri: model.uri,
-        range: new monaco.Range(
-          suggestion.range.startLineNumber - 1,
-          suggestion.range.startColumn,
-          suggestion.range.endLineNumber - 1,
-          suggestion.range.endColumn
-        ),
-      })),
-    }
   }
 }
 
