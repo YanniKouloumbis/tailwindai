@@ -12,6 +12,13 @@ const externals = {
   purgecss: 'self.purgecss',
 }
 
+function getExternal(context, request, callback) {
+  if (/node_modules/.test(context) && externals[request]) {
+    return callback(null, externals[request])
+  }
+  callback()
+}
+
 module.exports = withTM({
   webpack: (config) => {
     config.module.rules
@@ -42,9 +49,9 @@ module.exports = withTM({
     )
 
     if (config.externals) {
-      config.externals.push(externals)
+      config.externals.push(getExternal)
     } else {
-      config.externals = externals
+      config.externals = [getExternal]
     }
 
     config.module.rules.push({
