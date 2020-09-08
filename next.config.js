@@ -20,7 +20,7 @@ function getExternal(context, request, callback) {
 }
 
 module.exports = withTM({
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.module.rules
       .filter((rule) => rule.oneOf)
       .forEach((rule) => {
@@ -48,10 +48,12 @@ module.exports = withTM({
       })
     )
 
-    if (config.externals) {
-      config.externals.push(getExternal)
-    } else {
-      config.externals = [getExternal]
+    if (!isServer) {
+      if (config.externals) {
+        config.externals.push(getExternal)
+      } else {
+        config.externals = [getExternal]
+      }
     }
 
     config.module.rules.push({
