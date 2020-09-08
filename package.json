@@ -35,12 +35,13 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-split-pane": "^0.1.92",
+    "react-use": "^15.3.4",
     "rollup": "^2.26.9",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^7.0.1",
     "simple-functional-loader": "^1.2.1",
-    "tailwindcss": "^1.7.6",
+    "tailwindcss": "^1.8.5",
     "worker-loader": "^3.0.2"
   }
 }

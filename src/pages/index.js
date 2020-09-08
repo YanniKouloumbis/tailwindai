@@ -7,6 +7,7 @@ import { createWorkerQueue } from '../utils/createWorkerQueue'
 import { debounce } from 'debounce'
 import SplitPane from 'react-split-pane'
 import { Logo } from '../components/Logo'
+import useMedia from 'react-use/lib/useMedia'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
 
@@ -30,9 +31,12 @@ export default function App() {
   const worker = useRef()
   const compressWorker = useRef()
   const [initialContent, setInitialContent] = useState()
-  const [size, setSize] = useState()
+  const [size, setSize] = useState({ percentage: 0.5 })
   const [resizing, setResizing] = useState(false)
   const [activeTab, setActiveTab] = useState('html')
+  const [activePane, setActivePane] = useState('editor')
+  const isMd = useMedia('(min-width: 768px)')
+  const [renderEditor, setRenderEditor] = useState(false)
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -104,13 +108,6 @@ export default function App() {
       config: content.config,
     })
 
-    const windowWidth = window.innerWidth
-    setSize({
-      current: windowWidth / 2,
-      min: 320,
-      max: windowWidth - 320,
-    })
-
     return () => {
       worker.current.terminate()
       compressWorker.current.terminate()
@@ -118,19 +115,51 @@ export default function App() {
   }, [compileNow, injectHtml])
 
   useEffect(() => {
-    function onResize() {
-      const max = window.innerWidth - 320
-      setSize((size) => ({
-        ...size,
-        max,
-        current: Math.max(Math.min(size.current, max), 320),
-      }))
+    function updateSize() {
+      setSize((size) => {
+        const windowWidth = window.innerWidth
+
+        if (isMd) {
+          const min = 320
+          const max = windowWidth - min
+
+          return {
+            ...size,
+            min,
+            max,
+            current: Math.max(
+              Math.min(Math.round(windowWidth * size.percentage), max),
+              320
+            ),
+          }
+        }
+
+        const newSize = activePane === 'editor' ? windowWidth : 0
+
+        return {
+          ...size,
+          current: newSize,
+          min: newSize,
+          max: newSize,
+        }
+      })
     }
-    window.addEventListener('resize', onResize)
+    updateSize()
+    window.addEventListener('resize', updateSize)
     return () => {
-      window.removeEventListener('resize', onResize)
+      window.removeEventListener('resize', updateSize)
     }
-  }, [])
+  }, [isMd, setSize, activePane])
+
+  useEffect(() => {
+    if (isMd) {
+      setRenderEditor(true)
+    } else if (activePane === 'editor') {
+      setRenderEditor(true)
+    } else {
+      previewRef.current.focus()
+    }
+  }, [activePane, isMd])
 
   useEffect(() => {
     if (resizing) {
@@ -141,7 +170,15 @@ export default function App() {
   }, [resizing])
 
   const updateCurrentSize = useCallback((newSize) => {
-    setSize((size) => ({ ...size, current: newSize }))
+    setSize((size) => {
+      const percentage = newSize / window.innerWidth
+      return {
+        ...size,
+        current: newSize,
+        percentage:
+          percentage === 1 || percentage === 0 ? size.percentage : percentage,
+      }
+    })
   }, [])
 
   return (
@@ -150,96 +187,124 @@ export default function App() {
         <Logo />
       </header>
       <main className="flex-auto relative">
-        {initialContent && size ? (
-          <SplitPane
-            split="vertical"
-            minSize={size.min}
-            maxSize={size.max}
-            size={size.current}
-            onChange={updateCurrentSize}
-            pane1Style={{ display: 'flex', flexDirection: 'column' }}
-            onDragStarted={() => setResizing(true)}
-            onDragFinished={() => setResizing(false)}
-          >
-            <>
-              <div className="flex flex-none px-8 py-2 space-x-3 border-b border-gray-200">
+        {initialContent && typeof size.current !== 'undefined' ? (
+          <>
+            <div className="flex flex-none px-8 py-2 space-x-3 absolute z-10 top-0 left-0">
+              <button
+                type="button"
+                className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+                  (isMd || activePane === 'editor') && activeTab === 'html'
+                    ? 'text-black bg-gray-100 focus:bg-gray-200'
+                    : 'text-gray-500 focus:text-black'
+                }`}
+                onClick={() => {
+                  setActivePane('editor')
+                  setActiveTab('html')
+                }}
+              >
+                HTML
+              </button>
+              <button
+                type="button"
+                className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+                  (isMd || activePane === 'editor') && activeTab === 'css'
+                    ? 'text-black bg-gray-100 focus:bg-gray-200'
+                    : 'text-gray-500 focus:text-black'
+                }`}
+                onClick={() => {
+                  setActivePane('editor')
+                  setActiveTab('css')
+                }}
+              >
+                CSS
+              </button>
+              <button
+                type="button"
+                className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+                  (isMd || activePane === 'editor') && activeTab === 'config'
+                    ? 'text-black bg-gray-100 focus:bg-gray-200'
+                    : 'text-gray-500 focus:text-black'
+                }`}
+                onClick={() => {
+                  setActivePane('editor')
+                  setActiveTab('config')
+                }}
+              >
+                Config
+              </button>
+              {!isMd && (
                 <button
                   type="button"
                   className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
-                    activeTab === 'html'
+                    activePane === 'preview'
                       ? 'text-black bg-gray-100 focus:bg-gray-200'
                       : 'text-gray-500 focus:text-black'
                   }`}
-                  onClick={() => setActiveTab('html')}
+                  onClick={() => setActivePane('preview')}
                 >
-                  HTML
+                  Preview
                 </button>
-                <button
-                  type="button"
-                  className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
-                    activeTab === 'css'
-                      ? 'text-black bg-gray-100 focus:bg-gray-200'
-                      : 'text-gray-500 focus:text-black'
-                  }`}
-                  onClick={() => setActiveTab('css')}
-                >
-                  CSS
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
-                    activeTab === 'config'
-                      ? 'text-black bg-gray-100 focus:bg-gray-200'
-                      : 'text-gray-500 focus:text-black'
-                  }`}
-                  onClick={() => setActiveTab('config')}
-                >
-                  Config
-                </button>
+              )}
+            </div>
+
+            <SplitPane
+              split="vertical"
+              minSize={size.min}
+              maxSize={size.max}
+              size={size.current}
+              onChange={updateCurrentSize}
+              pane1Style={{ display: 'flex', flexDirection: 'column' }}
+              onDragStarted={() => setResizing(true)}
+              onDragFinished={() => setResizing(false)}
+              allowResize={isMd}
+            >
+              <div className="border-t border-gray-200 mt-10 flex-auto flex">
+                {renderEditor && (
+                  <Editor
+                    initialContent={initialContent}
+                    onChange={onChange}
+                    worker={worker}
+                    activeTab={activeTab}
+                  />
+                )}
               </div>
-              <Editor
-                initialContent={initialContent}
-                onChange={onChange}
-                worker={worker}
-                activeTab={activeTab}
+              <iframe
+                ref={previewRef}
+                title="Preview"
+                className={`absolute inset-0 w-full h-full ${
+                  resizing ? 'pointer-events-none' : ''
+                } ${isMd ? '' : 'mt-10 border-t border-gray-200'}`}
+                onLoad={() => {
+                  injectHtml(initialContent.html)
+                  compileNow(initialContent)
+                }}
+                srcDoc={`<!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1">
+                      <style id="_style"></style>
+                      <script>
+                      window.addEventListener('message', (e) => {
+                        if ('css' in e.data) {
+                          const style = document.getElementById('_style')
+                          const newStyle = document.createElement('style')
+                          newStyle.id = '_style'
+                          newStyle.innerHTML = e.data.css
+                          style.parentNode.replaceChild(newStyle, style)
+                        }
+                        if ('html' in e.data) {
+                          document.body.innerHTML = e.data.html
+                        }
+                      })
+                      </script>
+                    </head>
+                    <body>
+                    </body>
+                  </html>`}
               />
-            </>
-            <iframe
-              ref={previewRef}
-              title="Preview"
-              className={`absolute inset-0 w-full h-full ${
-                resizing ? 'pointer-events-none' : ''
-              }`}
-              onLoad={() => {
-                injectHtml(initialContent.html)
-                compileNow(initialContent)
-              }}
-              srcDoc={`<!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="utf-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-              <style id="_style"></style>
-              <script>
-              window.addEventListener('message', (e) => {
-                if ('css' in e.data) {
-                  const style = document.getElementById('_style')
-                  const newStyle = document.createElement('style')
-                  newStyle.id = '_style'
-                  newStyle.innerHTML = e.data.css
-                  style.parentNode.replaceChild(newStyle, style)
-                }
-                if ('html' in e.data) {
-                  document.body.innerHTML = e.data.html
-                }
-              })
-              </script>
-            </head>
-            <body>
-            </body>
-          </html>`}
-            />
-          </SplitPane>
+            </SplitPane>
+          </>
         ) : null}
       </main>
     </>
