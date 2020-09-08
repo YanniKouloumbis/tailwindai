@@ -32,6 +32,7 @@ export default function App() {
   const [initialContent, setInitialContent] = useState()
   const [size, setSize] = useState()
   const [resizing, setResizing] = useState(false)
+  const [activeTab, setActiveTab] = useState('html')
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -160,11 +161,49 @@ export default function App() {
             onDragStarted={() => setResizing(true)}
             onDragFinished={() => setResizing(false)}
           >
-            <Editor
-              initialContent={initialContent}
-              onChange={onChange}
-              worker={worker}
-            />
+            <>
+              <div className="flex flex-none px-8 py-2 space-x-3 border-b border-gray-200">
+                <button
+                  type="button"
+                  className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+                    activeTab === 'html'
+                      ? 'text-black bg-gray-100 focus:bg-gray-200'
+                      : 'text-gray-500 focus:text-black'
+                  }`}
+                  onClick={() => setActiveTab('html')}
+                >
+                  HTML
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+                    activeTab === 'css'
+                      ? 'text-black bg-gray-100 focus:bg-gray-200'
+                      : 'text-gray-500 focus:text-black'
+                  }`}
+                  onClick={() => setActiveTab('css')}
+                >
+                  CSS
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+                    activeTab === 'config'
+                      ? 'text-black bg-gray-100 focus:bg-gray-200'
+                      : 'text-gray-500 focus:text-black'
+                  }`}
+                  onClick={() => setActiveTab('config')}
+                >
+                  Config
+                </button>
+              </div>
+              <Editor
+                initialContent={initialContent}
+                onChange={onChange}
+                worker={worker}
+                activeTab={activeTab}
+              />
+            </>
             <iframe
               ref={previewRef}
               title="Preview"
