@@ -278,13 +278,17 @@ export default function App() {
                   injectHtml(initialContent.html)
                   compileNow(initialContent)
                 }}
-                srcDoc={`<!DOCTYPE html>
+                srcDoc={`
+                  <!DOCTYPE html>
                   <html>
                     <head>
                       <meta charset="utf-8">
                       <meta name="viewport" content="width=device-width, initial-scale=1">
                       <style id="_style"></style>
                       <script>
+                      var hasHtml = false
+                      var hasCss = false
+                      var visible = false
                       window.addEventListener('message', (e) => {
                         if ('css' in e.data) {
                           const style = document.getElementById('_style')
@@ -292,16 +296,23 @@ export default function App() {
                           newStyle.id = '_style'
                           newStyle.innerHTML = e.data.css
                           style.parentNode.replaceChild(newStyle, style)
+                          hasCss = true
                         }
                         if ('html' in e.data) {
                           document.body.innerHTML = e.data.html
+                          hasHtml = true
+                        }
+                        if (!visible && hasHtml && hasCss) {
+                          visible = true
+                          document.body.style.display = ''
                         }
                       })
                       </script>
                     </head>
-                    <body>
+                    <body style="display:none">
                     </body>
-                  </html>`}
+                  </html>
+                `}
               />
             </SplitPane>
           </>
