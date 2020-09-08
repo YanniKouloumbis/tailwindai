@@ -150,7 +150,11 @@ export default function App() {
             onDragStarted={() => setResizing(true)}
             onDragFinished={() => setResizing(false)}
           >
-            <Editor initialContent={initialContent} onChange={onChange} />
+            <Editor
+              initialContent={initialContent}
+              onChange={onChange}
+              worker={worker}
+            />
             <iframe
               ref={previewRef}
               title="Preview"

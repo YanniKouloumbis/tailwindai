@@ -5,7 +5,13 @@ import { setupHtmlMode } from './html'
 import { setupCssMode } from './css'
 import { setupJavaScriptMode } from './javascript'
 
-export function createMonacoEditor({ container, initialContent, onChange }) {
+export function createMonacoEditor({
+  container,
+  initialContent,
+  onChange,
+  worker,
+}) {
+  let editor
   const disposables = []
 
   window.MonacoEnvironment.getWorkerUrl = (_moduleId, label) => {
@@ -19,9 +25,14 @@ export function createMonacoEditor({ container, initialContent, onChange }) {
 
   disposables.push(registerDocumentFormattingEditProviders())
 
-  const html = setupHtmlMode(initialContent.html, () => {
-    triggerOnChange('html')
-  })
+  const html = setupHtmlMode(
+    initialContent.html,
+    (newContent) => {
+      triggerOnChange('html', newContent)
+    },
+    worker,
+    () => editor
+  )
   disposables.push(html)
 
   const css = setupCssMode(initialContent.css, () => {
@@ -34,7 +45,7 @@ export function createMonacoEditor({ container, initialContent, onChange }) {
   })
   disposables.push(config)
 
-  const editor = monaco.editor.create(container, {
+  editor = monaco.editor.create(container, {
     fontSize: 14,
     minimap: { enabled: false },
   })
@@ -44,12 +55,21 @@ export function createMonacoEditor({ container, initialContent, onChange }) {
 
   setupKeybindings(editor)
 
-  function triggerOnChange(id) {
+  function triggerOnChange(id, newContent) {
     if (onChange) {
       onChange(id, {
-        html: html.model.getValue(),
-        css: css.model.getValue(),
-        config: config.model.getValue(),
+        html:
+          id === 'html' && typeof newContent !== 'undefined'
+            ? newContent
+            : html.model.getValue(),
+        css:
+          id === 'css' && typeof newContent !== 'undefined'
+            ? newContent
+            : css.model.getValue(),
+        config:
+          id === 'config' && typeof newContent !== 'undefined'
+            ? newContent
+            : config.model.getValue(),
       })
     }
   }

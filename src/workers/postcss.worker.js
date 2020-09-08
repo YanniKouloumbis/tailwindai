@@ -1,5 +1,7 @@
 import postcss from 'postcss'
 import tailwindcss from 'tailwindcss'
+import extractClasses from './extractClasses'
+import { getCompletions } from '../monaco/getCompletions'
 ///////////////
 import {
   baseUrl as pageBaseUrl,
@@ -23,12 +25,19 @@ self.fsextra = new Proxy({}, handler)
 self.fsrealpath = new Proxy({}, handler)
 self.resolve = new Proxy({}, handler)
 
+let state
 let current
 
 addEventListener('message', async (event) => {
   if (event.data._current) {
     current = event.data._current
     return
+  }
+
+  if (event.data.completions) {
+    return respond({
+      completions: getCompletions(state, event.data.completions),
+    })
   }
 
   function respond(data) {
@@ -59,11 +68,17 @@ addEventListener('message', async (event) => {
   }
 
   try {
-    const { css } = await postcss([tailwindcss(mod.exports)]).process(
-      event.data.css,
-      { from: undefined }
+    const separator = mod.exports.separator || ':'
+    mod.exports.separator = '__TAILWIND_SEPARATOR__'
+    const { css, root } = await postcss([
+      tailwindcss(mod.exports),
+    ]).process(event.data.css, { from: undefined })
+    state = await extractClasses(root)
+    state.separator = separator
+    const escapedSeparator = separator.replace(/./g, (m) =>
+      /[a-z0-9-_]/i.test(m) ? m : `\\${m}`
     )
-    respond({ css })
+    respond({ css: css.replace(/__TAILWIND_SEPARATOR__/g, escapedSeparator) })
   } catch (_) {
     respond({ error: true })
   }

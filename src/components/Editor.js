@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { createMonacoEditor } from '../monaco'
 
-export default function Editor({ initialContent = {}, onChange }) {
+export default function Editor({ initialContent = {}, onChange, worker }) {
   const editorContainerRef = useRef()
   const editorRef = useRef()
   const editorState = useRef({})
@@ -12,6 +12,7 @@ export default function Editor({ initialContent = {}, onChange }) {
       container: editorContainerRef.current,
       initialContent,
       onChange,
+      worker,
     })
 
     return () => {
