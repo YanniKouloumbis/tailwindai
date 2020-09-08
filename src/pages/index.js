@@ -105,7 +105,7 @@ export default function App() {
 
     const windowWidth = window.innerWidth
     setSize({
-      initial: windowWidth / 2,
+      current: windowWidth / 2,
       min: 320,
       max: windowWidth - 320,
     })
@@ -118,7 +118,12 @@ export default function App() {
 
   useEffect(() => {
     function onResize() {
-      setSize((size) => ({ ...size, max: window.innerWidth - 320 }))
+      const max = window.innerWidth - 320
+      setSize((size) => ({
+        ...size,
+        max,
+        current: Math.max(Math.min(size.current, max), 320),
+      }))
     }
     window.addEventListener('resize', onResize)
     return () => {
@@ -134,6 +139,10 @@ export default function App() {
     }
   }, [resizing])
 
+  const updateCurrentSize = useCallback((newSize) => {
+    setSize((size) => ({ ...size, current: newSize }))
+  }, [])
+
   return (
     <>
       <header className="relative z-10 flex-none py-5 px-8 shadow">
@@ -145,7 +154,8 @@ export default function App() {
             split="vertical"
             minSize={size.min}
             maxSize={size.max}
-            defaultSize={size.initial}
+            size={size.current}
+            onChange={updateCurrentSize}
             pane1Style={{ display: 'flex', flexDirection: 'column' }}
             onDragStarted={() => setResizing(true)}
             onDragFinished={() => setResizing(false)}
