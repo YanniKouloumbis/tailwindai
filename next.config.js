@@ -14,29 +14,29 @@ const externals = {
 
 module.exports = withTM({
   webpack: (config) => {
-    const rule = config.module.rules
-      .find((rule) => rule.oneOf)
-      .oneOf.find(
-        (r) =>
-          // Find the global CSS loader
-          r.issuer && r.issuer.include && r.issuer.include.includes('_app')
-      )
-    if (rule) {
-      rule.issuer.include = [
-        rule.issuer.include,
-        // Allow `monaco-editor` to import global CSS:
-        /[\\/]node_modules[\\/]monaco-editor[\\/]/,
-      ]
-    }
+    config.module.rules
+      .filter((rule) => rule.oneOf)
+      .forEach((rule) => {
+        rule.oneOf.forEach((r) => {
+          if (
+            r.issuer &&
+            r.issuer.and &&
+            r.issuer.and.length === 1 &&
+            r.issuer.and[0] ===
+              require('path').resolve(process.cwd(), 'src/pages/_app.js')
+          ) {
+            r.issuer.or = [
+              ...r.issuer.and,
+              /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+            ]
+            delete r.issuer.and
+          }
+        })
+      })
 
     config.plugins.push(
       new MonacoWebpackPlugin({
-        languages: [
-          'css',
-          'typescript',
-          'javascript',
-          'html',
-        ],
+        languages: ['css', 'typescript', 'javascript', 'html'],
         filename: 'static/[name].worker.js',
       })
     )
