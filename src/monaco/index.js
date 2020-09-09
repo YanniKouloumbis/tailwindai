@@ -48,6 +48,9 @@ export function createMonacoEditor({
   editor = monaco.editor.create(container, {
     fontSize: 14,
     minimap: { enabled: false },
+    theme: document.querySelector('html').classList.contains('dark')
+      ? 'vs-dark'
+      : 'vs',
   })
   disposables.push(editor)
 

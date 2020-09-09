@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { createMonacoEditor } from '../monaco'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
 export default function Editor({
   initialContent = {},
@@ -23,6 +24,31 @@ export default function Editor({
       editorRef.current.dispose()
     }
   }, [initialContent, onChange, worker])
+
+  useEffect(() => {
+    const target = document.querySelector('html')
+
+    const observer = new MutationObserver((mutationsList) => {
+      for (let mutation of mutationsList) {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'class'
+        ) {
+          if (target.classList.contains('dark')) {
+            monaco.editor.setTheme('vs-dark')
+          } else {
+            monaco.editor.setTheme('vs')
+          }
+        }
+      }
+    })
+
+    observer.observe(target, { attributes: true })
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   // TODO: polyfill?
   useEffect(() => {

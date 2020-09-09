@@ -13,11 +13,19 @@ body.cursor-col-resize * {
   cursor: col-resize !important;
 }
 
+.disable-transitions * {
+  transition: none !important;
+}
+
 /* purgecss start ignore */
 .Resizer {
-  background: theme('colors.gray.200');
+  background-color: theme('colors.gray.200');
   z-index: 1;
   background-clip: padding-box;
+}
+
+.dark .Resizer {
+  background-color: theme('colors.gray.600');
 }
 
 .Resizer:hover {

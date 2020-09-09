@@ -26,6 +26,22 @@ const defaultContent = {
   config: 'module.exports = {\n  theme: {\n    //\n  }\n}\n',
 }
 
+function TabButton({ isActive, onClick, children }) {
+  return (
+    <button
+      type="button"
+      className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+        isActive
+          ? 'text-black bg-gray-100 focus:bg-gray-200 dark:text-white dark:bg-gray-900'
+          : 'text-gray-500 hover:text-black focus:text-black dark:text-gray-400 dark:hover:text-white'
+      }`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  )
+}
+
 export default function App() {
   const previewRef = useRef()
   const worker = useRef()
@@ -181,72 +197,98 @@ export default function App() {
     })
   }, [])
 
+  function toggleTheme() {
+    const $html = document.querySelector('html')
+    $html.classList.add('disable-transitions')
+    if ($html.classList.contains('dark')) {
+      $html.classList.remove('dark')
+      try {
+        window.localStorage.setItem('theme', 'light')
+      } catch (_) {}
+    } else {
+      $html.classList.add('dark')
+      try {
+        window.localStorage.setItem('theme', 'dark')
+      } catch (_) {}
+    }
+    window.setTimeout(() => {
+      $html.classList.remove('disable-transitions')
+    }, 0)
+  }
+
   return (
     <>
-      <header className="relative z-10 flex-none py-5 px-8 shadow">
+      <header className="relative z-10 flex-none py-5 px-5 sm:px-8 shadow dark:shadow-white flex items-center">
         <Logo />
+        <button type="button" className="ml-auto" onClick={toggleTheme}>
+          <svg
+            className="w-5 h-5 block dark:hidden"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <svg
+            className="w-5 h-5 hidden dark:block"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+          </svg>
+        </button>
       </header>
       <main className="flex-auto relative">
         {initialContent && typeof size.current !== 'undefined' ? (
           <>
-            <div className="flex flex-none px-8 py-2 space-x-3 absolute z-10 top-0 left-0">
-              <button
-                type="button"
-                className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+            <div className="flex flex-none px-5 sm:px-8 py-2 space-x-3 absolute z-10 top-0 left-0">
+              <TabButton
+                isActive={
                   (isMd || activePane === 'editor') && activeTab === 'html'
-                    ? 'text-black bg-gray-100 focus:bg-gray-200'
-                    : 'text-gray-500 focus:text-black'
-                }`}
+                }
                 onClick={() => {
                   setActivePane('editor')
                   setActiveTab('html')
                 }}
               >
                 HTML
-              </button>
-              <button
-                type="button"
-                className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+              </TabButton>
+              <TabButton
+                isActive={
                   (isMd || activePane === 'editor') && activeTab === 'css'
-                    ? 'text-black bg-gray-100 focus:bg-gray-200'
-                    : 'text-gray-500 focus:text-black'
-                }`}
+                }
                 onClick={() => {
                   setActivePane('editor')
                   setActiveTab('css')
                 }}
               >
                 CSS
-              </button>
-              <button
-                type="button"
-                className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
+              </TabButton>
+              <TabButton
+                isActive={
                   (isMd || activePane === 'editor') && activeTab === 'config'
-                    ? 'text-black bg-gray-100 focus:bg-gray-200'
-                    : 'text-gray-500 focus:text-black'
-                }`}
+                }
                 onClick={() => {
                   setActivePane('editor')
                   setActiveTab('config')
                 }}
               >
                 Config
-              </button>
+              </TabButton>
               {!isMd && (
-                <button
-                  type="button"
-                  className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
-                    activePane === 'preview'
-                      ? 'text-black bg-gray-100 focus:bg-gray-200'
-                      : 'text-gray-500 focus:text-black'
-                  }`}
-                  onClick={() => setActivePane('preview')}
+                <TabButton
+                  isActive={activePane === 'preview'}
+                  onClick={() => {
+                    setActivePane('preview')
+                  }}
                 >
                   Preview
-                </button>
+                </TabButton>
               )}
             </div>
-
             <SplitPane
               split="vertical"
               minSize={size.min}
@@ -258,7 +300,7 @@ export default function App() {
               onDragFinished={() => setResizing(false)}
               allowResize={isMd}
             >
-              <div className="border-t border-gray-200 mt-10 flex-auto flex">
+              <div className="border-t border-gray-200 dark:border-gray-600 mt-10 flex-auto flex">
                 {renderEditor && (
                   <Editor
                     initialContent={initialContent}
@@ -271,9 +313,13 @@ export default function App() {
               <iframe
                 ref={previewRef}
                 title="Preview"
-                className={`absolute inset-0 w-full h-full ${
+                className={`absolute inset-0 w-full h-full bg-white ${
                   resizing ? 'pointer-events-none' : ''
-                } ${isMd ? '' : 'mt-10 border-t border-gray-200'}`}
+                } ${
+                  isMd
+                    ? ''
+                    : 'mt-10 border-t border-gray-200 dark:border-gray-600'
+                }`}
                 onLoad={() => {
                   injectHtml(initialContent.html)
                   compileNow(initialContent)

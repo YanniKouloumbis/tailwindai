@@ -31,8 +31,27 @@ export default class Document extends NextDocument {
   render() {
     return (
       <Html lang="en" className="h-full">
-        <InlineStylesHead />
-        <body className="min-h-full flex">
+        <InlineStylesHead>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                try {
+                  if (!('theme' in localStorage)) {
+                    localStorage.theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+                      ? 'dark'
+                      : 'light'
+                  }
+                  if (localStorage.theme === 'dark') {
+                    document.querySelector('html').classList.add('dark')
+                  }
+                } catch (_) {}
+              `
+                .replace(/\s+/g, '')
+                .replace("'inlocal", "' in local"),
+            }}
+          />
+        </InlineStylesHead>
+        <body className="min-h-full flex text-gray-700 dark:text-white bg-white dark:bg-gray-800">
           <Main />
           <NextScript />
         </body>
