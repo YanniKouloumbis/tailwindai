@@ -17,6 +17,10 @@ body.cursor-col-resize * {
   transition: none !important;
 }
 
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row > .contents {
+  display: block;
+}
+
 /* purgecss start ignore */
 .Resizer {
   background-color: theme('colors.gray.200');
