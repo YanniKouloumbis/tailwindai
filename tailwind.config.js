@@ -4,8 +4,17 @@ module.exports = {
     extendedSpacingScale: true,
     darkModeVariant: true,
   },
+  future: {
+    purgeLayersByDefault: true,
+  },
   dark: 'class',
-  purge: ['./src/**/*.js'],
+  purge: {
+    content: ['./src/**/*.js'],
+    preserveHtmlElements: false,
+    options: {
+      keyframes: true,
+    },
+  },
   theme: {
     extend: {
       boxShadow: {
@@ -17,5 +26,8 @@ module.exports = {
   variants: {
     display: ({ variants }) => [...variants('display'), 'dark'],
     boxShadow: ({ variants }) => [...variants('boxShadow'), 'dark'],
+  },
+  corePlugins: {
+    container: false,
   },
 }
