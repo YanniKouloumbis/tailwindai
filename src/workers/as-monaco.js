@@ -269,7 +269,7 @@ function asTextEdits(items) {
   return items.map((item) => asTextEdit(item))
 }
 
-function asRange(range) {
+export function asRange(range) {
   if (range === undefined) {
     return undefined
   }

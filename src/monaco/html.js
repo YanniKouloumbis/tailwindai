@@ -1,6 +1,8 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { supplementMarkers } from './supplementMarkers'
 import { renderColorDecorators } from './renderColorDecorators'
+import { requestResponse } from '../utils/workers'
+import { debounce } from 'debounce'
 
 const HTML_URI = 'file:///HTML'
 
@@ -12,7 +14,7 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
       triggerCharacters: [' ', '"'],
       provideCompletionItems: async function (model, position) {
         if (!worker.current) return { suggestions: [] }
-        const { result } = await worker.current.emit({
+        const { result } = await requestResponse(worker.current, {
           lsp: {
             type: 'complete',
             text: model.getValue(),
@@ -38,7 +40,7 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
         onChange(lines.join('\n'))
 
         if (!item._resolved) {
-          let { result } = await worker.current.emit({
+          let { result } = await requestResponse(worker.current, {
             lsp: {
               type: 'resolveCompletionItem',
               item,
@@ -57,7 +59,7 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
   disposables.push(
     monaco.languages.registerHoverProvider('html', {
       provideHover: async (model, position) => {
-        let { result } = await worker.current.emit({
+        let { result } = await requestResponse(worker.current, {
           lsp: {
             type: 'hover',
             text: model.getValue(),
@@ -94,26 +96,25 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
   model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
 
-  async function updateDecorations() {
-    // TODO
-    // renderColorDecorators(getEditor(), [
-    //   {
-    //     range: new monaco.Range(1, 5, 1, 10),
-    //     color: 'lime',
-    //   },
-    // ])
-
-    let { result } = await worker.current.emit(
-      {
-        lsp: {
-          type: 'validate',
-          text: model.getValue(),
-          language: 'html',
-          uri: HTML_URI,
-        },
+  const updateDecorations = debounce(async () => {
+    let { result: colors } = await requestResponse(worker.current, {
+      lsp: {
+        type: 'documentColors',
+        text: model.getValue(),
+        language: 'html',
+        uri: HTML_URI,
       },
-      false
-    )
+    })
+    renderColorDecorators(getEditor(), model, colors)
+
+    let { result } = await requestResponse(worker.current, {
+      lsp: {
+        type: 'validate',
+        text: model.getValue(),
+        language: 'html',
+        uri: HTML_URI,
+      },
+    })
 
     if (model.isDisposed()) return
 
@@ -122,7 +123,9 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
     } else {
       monaco.editor.setModelMarkers(model, 'default', [])
     }
-  }
+  }, 100)
+
+  updateDecorations()
 
   disposables.push(
     model.onDidChangeContent(() => {

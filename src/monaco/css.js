@@ -10,6 +10,8 @@ import { LanguageServiceDefaultsImpl } from 'monaco-editor/esm/vs/language/css/m
 import * as cssService from 'monaco-editor/esm/vs/language/css/_deps/vscode-css-languageservice/cssLanguageService'
 import { supplementMarkers } from './supplementMarkers'
 import { renderColorDecorators } from './renderColorDecorators'
+import { requestResponse } from '../utils/workers'
+import { debounce } from 'debounce'
 
 const CSS_URI = 'file:///CSS'
 const CSS_PROXY_URI = 'file:///CSS.proxy'
@@ -129,18 +131,15 @@ export function setupCssMode(content, onChange, worker, getEditor) {
       triggerCharacters: [' ', '"', "'", '.'],
       provideCompletionItems: async function (model, position) {
         if (!worker.current) return { suggestions: [] }
-        const { result } = await worker.current.emit(
-          {
-            lsp: {
-              type: 'complete',
-              text: model.getValue(),
-              language: 'css',
-              uri: CSS_URI,
-              position,
-            },
+        const { result } = await requestResponse(worker.current, {
+          lsp: {
+            type: 'complete',
+            text: model.getValue(),
+            language: 'css',
+            uri: CSS_URI,
+            position,
           },
-          false
-        )
+        })
         return result ? result : { suggestions: [] }
       },
     })
@@ -149,7 +148,7 @@ export function setupCssMode(content, onChange, worker, getEditor) {
   disposables.push(
     monaco.languages.registerHoverProvider('tailwindcss', {
       provideHover: async (model, position) => {
-        let { result } = await worker.current.emit({
+        let { result } = await requestResponse(worker.current, {
           lsp: {
             type: 'hover',
             text: model.getValue(),
@@ -175,26 +174,25 @@ export function setupCssMode(content, onChange, worker, getEditor) {
   proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(proxyModel)
 
-  async function updateDecorations() {
-    // TODO
-    // renderColorDecorators(getEditor(), [
-    //   {
-    //     range: new monaco.Range(2, 5, 2, 10),
-    //     color: 'lime',
-    //   },
-    // ])
-
-    let { result } = await worker.current.emit(
-      {
-        lsp: {
-          type: 'validate',
-          text: model.getValue(),
-          language: 'css',
-          uri: CSS_URI,
-        },
+  const updateDecorations = debounce(async () => {
+    let { result: colors } = await requestResponse(worker.current, {
+      lsp: {
+        type: 'documentColors',
+        text: model.getValue(),
+        language: 'css',
+        uri: CSS_URI,
       },
-      false
-    )
+    })
+    renderColorDecorators(getEditor(), model, colors)
+
+    let { result } = await requestResponse(worker.current, {
+      lsp: {
+        type: 'validate',
+        text: model.getValue(),
+        language: 'css',
+        uri: CSS_URI,
+      },
+    })
 
     if (model.isDisposed()) return
 
@@ -203,7 +201,9 @@ export function setupCssMode(content, onChange, worker, getEditor) {
     } else {
       monaco.editor.setModelMarkers(model, 'default', [])
     }
-  }
+  }, 100)
+
+  updateDecorations()
 
   disposables.push(
     model.onDidChangeContent(async () => {

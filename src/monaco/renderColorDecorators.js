@@ -1,7 +1,9 @@
 let decorations = []
 let stylesheet
 
-export function renderColorDecorators(editor, newDecorations) {
+export function renderColorDecorators(editor, model, newDecorations) {
+  if (model.isDisposed() || editor.getModel() !== model) return
+
   if (!stylesheet) {
     stylesheet = document.createElement('style')
     document.head.appendChild(stylesheet)
@@ -9,7 +11,8 @@ export function renderColorDecorators(editor, newDecorations) {
 
   stylesheet.innerHTML = newDecorations
     .map(
-      ({ color }, i) => `._color-block-${i} {
+      ({ color }, i) => `
+        ._color-block-${i}::before {
           content: '';
           box-sizing: border-box;
           display: inline-block;
@@ -18,7 +21,11 @@ export function renderColorDecorators(editor, newDecorations) {
           margin: 0.1em 0.2em 0;
           border: 0.1em solid black;
           background-color: ${color};
-        }`
+        }
+        .vs-dark ._color-block-${i}::before {
+          border-color: rgb(238, 238, 238);
+        }
+      `
     )
     .join('')
 

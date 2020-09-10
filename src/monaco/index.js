@@ -1,6 +1,6 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import PrettierWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/prettier.worker.js'
-import { createWorkerQueue } from '../utils/createWorkerQueue'
+import { createWorkerQueue } from '../utils/workers'
 import { setupHtmlMode } from './html'
 import { setupCssMode } from './css'
 import { setupJavaScriptMode } from './javascript'
@@ -80,25 +80,25 @@ export function createMonacoEditor({
     }
   }
 
-  // worker.current.worker.addEventListener('message', (event) => {
-  //   if (event.data.css) {
-  //     const currentModel = editor.getModel()
-  //     if (currentModel === html.model) {
-  //       html.updateDecorations()
-  //     } else if (currentModel === css.model) {
-  //       css.updateDecorations()
-  //     }
-  //   }
-  // })
+  worker.current.addEventListener('message', (event) => {
+    if (event.data.css) {
+      const currentModel = editor.getModel()
+      if (currentModel === html.model) {
+        html.updateDecorations()
+      } else if (currentModel === css.model) {
+        css.updateDecorations()
+      }
+    }
+  })
 
-  // editor.onDidChangeModel(() => {
-  //   const currentModel = editor.getModel()
-  //   if (currentModel === html.model) {
-  //     html.updateDecorations()
-  //   } else if (currentModel === css.model) {
-  //     css.updateDecorations()
-  //   }
-  // })
+  editor.onDidChangeModel(() => {
+    const currentModel = editor.getModel()
+    if (currentModel === html.model) {
+      html.updateDecorations()
+    } else if (currentModel === css.model) {
+      css.updateDecorations()
+    }
+  })
 
   return {
     editor,

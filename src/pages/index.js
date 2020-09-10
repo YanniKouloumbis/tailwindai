@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import Worker from 'worker-loader?filename=static/[name].[hash].js!../workers/postcss.worker.js'
+import Worker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/postcss.worker.js'
 import CompressWorker from 'worker-loader?filename=static/[name].[hash].js!../workers/compress.worker.js'
 import dynamic from 'next/dynamic'
 import LZString from 'lz-string'
-import { createWorkerQueue } from '../utils/createWorkerQueue'
+import { createWorkerQueue, requestResponse } from '../utils/workers'
 import { debounce } from 'debounce'
 import SplitPane from 'react-split-pane'
 import { Logo } from '../components/Logo'
@@ -61,7 +61,7 @@ export default function App() {
   }, [])
 
   const compileNow = useCallback(async (content) => {
-    const { css, canceled, error } = await worker.current.emit({
+    const { css, canceled, error } = await requestResponse(worker.current, {
       config: content.config,
       css: content.css,
     })
@@ -100,7 +100,7 @@ export default function App() {
   )
 
   useEffect(() => {
-    worker.current = createWorkerQueue(Worker)
+    worker.current = new Worker()
     compressWorker.current = createWorkerQueue(CompressWorker)
 
     const content = defaultContent
