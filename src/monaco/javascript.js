@@ -3,6 +3,9 @@ import { SuggestAdapter } from 'monaco-editor/esm/vs/language/typescript/languag
 import types from '!!raw-loader!../monaco/types.d.ts'
 import { DiagnosticsAdapter } from 'monaco-editor/esm/vs/language/typescript/languageFeatures'
 
+const CONFIG_URI = 'file:///Config'
+const CONFIG_PROXY_URI = 'file:///Config.proxy'
+
 export function setupJavaScriptMode(content, onChange) {
   const disposables = []
 
@@ -68,7 +71,7 @@ export function setupJavaScriptMode(content, onChange) {
   const model = monaco.editor.createModel(
     content || '',
     'javascript',
-    'file:///tailwind.config.js'
+    CONFIG_URI
   )
   model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
@@ -76,7 +79,7 @@ export function setupJavaScriptMode(content, onChange) {
   const proxyModel = monaco.editor.createModel(
     addTypeAnnotationToJs(content || ''),
     'javascript',
-    'file:///tailwind.config.proxy.js'
+    CONFIG_PROXY_URI
   )
   proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(proxyModel)

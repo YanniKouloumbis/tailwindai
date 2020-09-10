@@ -109,7 +109,7 @@ async function process(root) {
       if (classNames[i].__rule) {
         dset(tree, [...baseKeys, ...index, '__rule'], true)
         // TODO
-        // dset(tree, [...baseKeys, ...index, '__source'], group.source)
+        dset(tree, [...baseKeys, ...index, '__source'], 'utilities')
 
         dsetEach(tree, [...baseKeys, ...index], decls)
       }

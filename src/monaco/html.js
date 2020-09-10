@@ -1,4 +1,8 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+import { supplementMarkers } from './supplementMarkers'
+import { renderColorDecorators } from './renderColorDecorators'
+
+const HTML_URI = 'file:///HTML'
 
 export function setupHtmlMode(content, onChange, worker, getEditor) {
   const disposables = []
@@ -8,20 +12,18 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
       triggerCharacters: [' ', '"'],
       provideCompletionItems: async function (model, position) {
         if (!worker.current) return { suggestions: [] }
-        const { canceled, error, completions } = await worker.current.emit({
-          completions: model.getValueInRange({
-            startLineNumber: 1,
-            startColumn: 1,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column,
-          }),
+        const { result } = await worker.current.emit({
+          lsp: {
+            type: 'complete',
+            text: model.getValue(),
+            language: 'html',
+            uri: HTML_URI,
+            position,
+          },
         })
-        if (canceled || error) return { suggestions: [] }
-        return {
-          suggestions: completions,
-        }
+        return result ? result : { suggestions: [] }
       },
-      resolveCompletionItem(model, _position, item, _token) {
+      async resolveCompletionItem(model, _position, item, _token) {
         const selections = getEditor().getSelections()
         let lines = model.getValue().split('\n')
 
@@ -35,7 +37,36 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
 
         onChange(lines.join('\n'))
 
-        throw 'error but not really'
+        if (!item._resolved) {
+          let { result } = await worker.current.emit({
+            lsp: {
+              type: 'resolveCompletionItem',
+              item,
+            },
+          })
+          Object.assign(item, result, { _resolved: true })
+        }
+
+        const error = new Error('Canceled')
+        error.name = error.message
+        throw error
+      },
+    })
+  )
+
+  disposables.push(
+    monaco.languages.registerHoverProvider('html', {
+      provideHover: async (model, position) => {
+        let { result } = await worker.current.emit({
+          lsp: {
+            type: 'hover',
+            text: model.getValue(),
+            language: 'html',
+            uri: HTML_URI,
+            position,
+          },
+        })
+        return result
       },
     })
   )
@@ -59,17 +90,50 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
     },
   })
 
-  const model = monaco.editor.createModel(
-    content || '',
-    'html',
-    'file:///index.html'
-  )
+  const model = monaco.editor.createModel(content || '', 'html', HTML_URI)
   model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
-  disposables.push(model.onDidChangeContent(() => onChange()))
+
+  async function updateDecorations() {
+    // TODO
+    // renderColorDecorators(getEditor(), [
+    //   {
+    //     range: new monaco.Range(1, 5, 1, 10),
+    //     color: 'lime',
+    //   },
+    // ])
+
+    let { result } = await worker.current.emit(
+      {
+        lsp: {
+          type: 'validate',
+          text: model.getValue(),
+          language: 'html',
+          uri: HTML_URI,
+        },
+      },
+      false
+    )
+
+    if (model.isDisposed()) return
+
+    if (result) {
+      monaco.editor.setModelMarkers(model, 'default', supplementMarkers(result))
+    } else {
+      monaco.editor.setModelMarkers(model, 'default', [])
+    }
+  }
+
+  disposables.push(
+    model.onDidChangeContent(() => {
+      onChange()
+      updateDecorations()
+    })
+  )
 
   return {
     model,
+    updateDecorations,
     dispose() {
       disposables.forEach(async (disposable) => (await disposable).dispose())
     },

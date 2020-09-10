@@ -63,19 +63,19 @@ export default function Editor({
 
   // TODO: prevent initial run?
   useEffect(() => {
-    const { editor, models } = editorRef.current
+    const { editor, documents } = editorRef.current
     const currentState = editor.saveViewState()
     const currentModel = editor.getModel()
 
-    if (currentModel === models.html) {
+    if (currentModel === documents.html.model) {
       editorState.current.html = currentState
-    } else if (currentModel === models.css) {
+    } else if (currentModel === documents.css.model) {
       editorState.current.css = currentState
-    } else if (currentModel === models.config) {
+    } else if (currentModel === documents.config.model) {
       editorState.current.config = currentState
     }
 
-    editor.setModel(models[activeTab])
+    editor.setModel(documents[activeTab].model)
     editor.restoreViewState(editorState.current[activeTab])
     editor.focus()
   }, [activeTab])

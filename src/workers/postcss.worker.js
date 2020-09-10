@@ -1,7 +1,21 @@
 import postcss from 'postcss'
 import tailwindcss from 'tailwindcss'
+import resolveConfig from 'tailwindcss/resolveConfig'
 import extractClasses from './extractClasses'
-import { getCompletions } from '../monaco/getCompletions'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import {
+  doComplete,
+  resolveCompletionItem,
+  doValidate,
+  doHover,
+} from 'twls-wip'
+import {
+  asCompletionResult as asMonacoCompletionResult,
+  asCompletionItem as asMonacoCompletionItem,
+  asDiagnostics as asMonacoDiagnostics,
+  asHover as asMonacoHover,
+} from './as-monaco'
+import { asCompletionItem as asLspCompletionItem } from './as-lsp'
 ///////////////
 import {
   baseUrl as pageBaseUrl,
@@ -25,7 +39,7 @@ self.fsextra = new Proxy({}, handler)
 self.fsrealpath = new Proxy({}, handler)
 self.resolve = new Proxy({}, handler)
 
-let state
+let state = {}
 let current
 
 addEventListener('message', async (event) => {
@@ -34,10 +48,43 @@ addEventListener('message', async (event) => {
     return
   }
 
-  if (event.data.completions) {
-    return respond({
-      completions: getCompletions(state, event.data.completions),
-    })
+  if (event.data.lsp) {
+    let result
+
+    const document = TextDocument.create(
+      event.data.lsp.uri,
+      event.data.lsp.language,
+      1,
+      event.data.lsp.text
+    )
+
+    switch (event.data.lsp.type) {
+      case 'complete':
+        result = asMonacoCompletionResult(
+          await doComplete(state, document, {
+            line: event.data.lsp.position.lineNumber - 1,
+            character: event.data.lsp.position.column - 1,
+          })
+        )
+        break
+      case 'resolveCompletionItem':
+        result = asMonacoCompletionItem(
+          resolveCompletionItem(state, asLspCompletionItem(event.data.lsp.item))
+        )
+        break
+      case 'hover':
+        result = asMonacoHover(
+          doHover(state, document, {
+            line: event.data.lsp.position.lineNumber - 1,
+            character: event.data.lsp.position.column - 1,
+          })
+        )
+        break
+      case 'validate':
+        result = asMonacoDiagnostics(await doValidate(state, document))
+        break
+    }
+    return postMessage({ _id: event.data._id, result })
   }
 
   function respond(data) {
@@ -73,8 +120,28 @@ addEventListener('message', async (event) => {
     const { css, root } = await postcss([
       tailwindcss(mod.exports),
     ]).process(event.data.css, { from: undefined })
-    state = await extractClasses(root)
+    mod.exports.separator = separator
+    state.classNames = await extractClasses(root)
     state.separator = separator
+    state.config = resolveConfig(mod.exports)
+    state.variants = [] // TODO
+    state.version = '1.8.5'
+    state.editor = {
+      userLanguages: {},
+      capabilities: {},
+      globalSettings: {
+        validate: true,
+        lint: {
+          cssConflict: 'warning',
+          invalidApply: 'error',
+          invalidScreen: 'error',
+          invalidVariant: 'error',
+          invalidConfigPath: 'error',
+          invalidTailwindDirective: 'error',
+        },
+      },
+    }
+    state.featureFlags = { experimental: [], future: [] } // TODO
     const escapedSeparator = separator.replace(/./g, (m) =>
       /[a-z0-9-_]/i.test(m) ? m : `\\${m}`
     )

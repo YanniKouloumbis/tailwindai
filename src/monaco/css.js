@@ -8,8 +8,13 @@ import {
 } from 'monaco-editor/esm/vs/language/css/languageFeatures'
 import { LanguageServiceDefaultsImpl } from 'monaco-editor/esm/vs/language/css/monaco.contribution'
 import * as cssService from 'monaco-editor/esm/vs/language/css/_deps/vscode-css-languageservice/cssLanguageService'
+import { supplementMarkers } from './supplementMarkers'
+import { renderColorDecorators } from './renderColorDecorators'
 
-export function setupCssMode(content, onChange) {
+const CSS_URI = 'file:///CSS'
+const CSS_PROXY_URI = 'file:///CSS.proxy'
+
+export function setupCssMode(content, onChange, worker, getEditor) {
   const disposables = []
 
   monaco.languages.register({ id: 'tailwindcss' })
@@ -92,9 +97,7 @@ export function setupCssMode(content, onChange) {
     this._worker(resource)
       .then(function (worker) {
         return worker.doValidation(
-          resource.toString() === 'file:///main.css'
-            ? 'file:///main.proxy.css'
-            : resource.toString()
+          resource.toString() === CSS_URI ? CSS_PROXY_URI : resource.toString()
         )
       })
       .then(function (diagnostics) {
@@ -121,31 +124,99 @@ export function setupCssMode(content, onChange) {
       })
   }
 
-  const model = monaco.editor.createModel(
-    content || '',
-    'tailwindcss',
-    'file:///main.css'
+  disposables.push(
+    monaco.languages.registerCompletionItemProvider('tailwindcss', {
+      triggerCharacters: [' ', '"', "'", '.'],
+      provideCompletionItems: async function (model, position) {
+        if (!worker.current) return { suggestions: [] }
+        const { result } = await worker.current.emit(
+          {
+            lsp: {
+              type: 'complete',
+              text: model.getValue(),
+              language: 'css',
+              uri: CSS_URI,
+              position,
+            },
+          },
+          false
+        )
+        return result ? result : { suggestions: [] }
+      },
+    })
   )
+
+  disposables.push(
+    monaco.languages.registerHoverProvider('tailwindcss', {
+      provideHover: async (model, position) => {
+        let { result } = await worker.current.emit({
+          lsp: {
+            type: 'hover',
+            text: model.getValue(),
+            language: 'css',
+            uri: CSS_URI,
+            position,
+          },
+        })
+        return result
+      },
+    })
+  )
+
+  const model = monaco.editor.createModel(content || '', 'tailwindcss', CSS_URI)
   model.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(model)
 
   const proxyModel = monaco.editor.createModel(
     augmentCss(content || ''),
     'tailwindcss',
-    'file:///main.proxy.css'
+    CSS_PROXY_URI
   )
   proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
   disposables.push(proxyModel)
 
+  async function updateDecorations() {
+    // TODO
+    // renderColorDecorators(getEditor(), [
+    //   {
+    //     range: new monaco.Range(2, 5, 2, 10),
+    //     color: 'lime',
+    //   },
+    // ])
+
+    let { result } = await worker.current.emit(
+      {
+        lsp: {
+          type: 'validate',
+          text: model.getValue(),
+          language: 'css',
+          uri: CSS_URI,
+        },
+      },
+      false
+    )
+
+    if (model.isDisposed()) return
+
+    if (result) {
+      monaco.editor.setModelMarkers(model, 'default', supplementMarkers(result))
+    } else {
+      monaco.editor.setModelMarkers(model, 'default', [])
+    }
+  }
+
   disposables.push(
-    model.onDidChangeContent(() => {
+    model.onDidChangeContent(async () => {
       onChange()
       proxyModel.setValue(augmentCss(model.getValue()))
+
+      updateDecorations()
     })
   )
 
   return {
     model,
+    updateDecorations,
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
     },
@@ -504,7 +575,8 @@ function augmentCss(css) {
   return css
     .replace(
       /@apply[^;}]+[;}]/g,
-      (m) => '@___{}' + m.substr(6).replace(/./g, ' ')
+      (m) =>
+        '@___{}' + m.substr(6).replace(/./g, (m) => (m === '}' ? '}' : ' '))
     )
     .replace(/@screen([^{]{2,})\{/g, (_m, p1) => {
       return `@media(_)${' '.repeat(p1.length - 2)}{`

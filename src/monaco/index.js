@@ -35,9 +35,14 @@ export function createMonacoEditor({
   )
   disposables.push(html)
 
-  const css = setupCssMode(initialContent.css, () => {
-    triggerOnChange('css')
-  })
+  const css = setupCssMode(
+    initialContent.css,
+    () => {
+      triggerOnChange('css')
+    },
+    worker,
+    () => editor
+  )
   disposables.push(css)
 
   const config = setupJavaScriptMode(initialContent.config, () => {
@@ -75,12 +80,32 @@ export function createMonacoEditor({
     }
   }
 
+  // worker.current.worker.addEventListener('message', (event) => {
+  //   if (event.data.css) {
+  //     const currentModel = editor.getModel()
+  //     if (currentModel === html.model) {
+  //       html.updateDecorations()
+  //     } else if (currentModel === css.model) {
+  //       css.updateDecorations()
+  //     }
+  //   }
+  // })
+
+  // editor.onDidChangeModel(() => {
+  //   const currentModel = editor.getModel()
+  //   if (currentModel === html.model) {
+  //     html.updateDecorations()
+  //   } else if (currentModel === css.model) {
+  //     css.updateDecorations()
+  //   }
+  // })
+
   return {
     editor,
-    models: {
-      html: html.model,
-      css: css.model,
-      config: config.model,
+    documents: {
+      html,
+      css,
+      config,
     },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
