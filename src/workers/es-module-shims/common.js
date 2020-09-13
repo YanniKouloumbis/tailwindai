@@ -198,7 +198,6 @@ export function resolveAndComposeImportMap(
     scopes: Object.assign({}, parentMap.scopes),
     depcache: Object.assign({}, parentMap.depcache),
   }
-  console.log(outMap)
 
   if (json.imports)
     resolveAndComposePackages(
@@ -261,7 +260,6 @@ export function resolveImportMap(
   resolvedOrPlain,
   parentUrl
 ) {
-  console.log(importMap)
   let scopeUrl = parentUrl && getMatch(parentUrl, importMap.scopes)
   while (scopeUrl) {
     const packageResolution = applyPackages(

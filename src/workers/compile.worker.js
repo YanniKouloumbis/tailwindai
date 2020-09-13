@@ -24,8 +24,6 @@ addEventListener('message', async (event) => {
     return
   }
 
-  console.log('start')
-
   function respond(data) {
     setTimeout(() => {
       if (event.data._id === current) {
@@ -342,7 +340,6 @@ const importMap = { imports: {}, scopes: {}, depcache: {} }
 let importMapPromise = resolvedPromise
 
 function resolve(id, parentUrl) {
-  console.log(importMap)
   return (
     resolveImportMap(
       importMap,
