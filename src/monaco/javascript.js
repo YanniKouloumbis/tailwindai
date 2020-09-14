@@ -30,7 +30,7 @@ export function setupJavaScriptMode(content, onChange) {
         ? markers.map((marker) => ({
             ...marker,
             startLineNumber: marker.startLineNumber - 1,
-            endLineNumber: marker.startLineNumber - 1,
+            endLineNumber: marker.endLineNumber - 1,
             relatedInformation: [],
           }))
         : markers
