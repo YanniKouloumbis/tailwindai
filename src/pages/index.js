@@ -8,23 +8,9 @@ import { debounce } from 'debounce'
 import SplitPane from 'react-split-pane'
 import { Logo } from '../components/Logo'
 import useMedia from 'react-use/lib/useMedia'
+import defaultContent from '../preval/defaultContent'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
-
-const defaultContent = {
-  html: `<div class="md:flex">
-  <div class="md:flex-shrink-0">
-    <img class="rounded-lg md:w-56" src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=448&q=80" alt="Woman paying for a purchase">
-  </div>
-  <div class="mt-4 md:mt-0 md:ml-6">
-    <div class="uppercase tracking-wide text-sm text-indigo-600 font-bold">Marketing</div>
-    <a href="#" class="block mt-1 text-lg leading-tight font-semibold text-gray-900 hover:underline">Finding customers for your new business</a>
-    <p class="mt-2 text-gray-600">Getting a new business off the ground is a lot of hard work. Here are five ideas you can use to find your first customers.</p>
-  </div>
-</div>\n`,
-  css: '@tailwind base;\n@tailwind components;\n@tailwind utilities;\n',
-  config: 'module.exports = {\n  theme: {\n    //\n  }\n}\n',
-}
 
 function TabButton({ isActive, onClick, children }) {
   return (
@@ -103,7 +89,7 @@ export default function App() {
     worker.current = new Worker()
     compressWorker.current = createWorkerQueue(CompressWorker)
 
-    const content = defaultContent
+    const content = { ...defaultContent }
 
     if (window.location.hash) {
       try {
@@ -215,6 +201,12 @@ export default function App() {
       $html.classList.remove('disable-transitions')
     }, 0)
   }
+
+  const isDefaultContent =
+    initialContent &&
+    initialContent.html === defaultContent.html &&
+    initialContent.css === defaultContent.css &&
+    initialContent.config === defaultContent.config
 
   return (
     <>
@@ -330,10 +322,12 @@ export default function App() {
                     <head>
                       <meta charset="utf-8">
                       <meta name="viewport" content="width=device-width, initial-scale=1">
-                      <style id="_style"></style>
+                      <style id="_style">${
+                        isDefaultContent ? defaultContent.compiledCss : ''
+                      }</style>
                       <script>
                       var hasHtml = false
-                      var hasCss = false
+                      var hasCss = ${isDefaultContent ? 'true' : 'false'}
                       var visible = false
                       window.addEventListener('message', (e) => {
                         if ('css' in e.data) {
