@@ -48,6 +48,7 @@ export function setupJavaScriptMode(content, onChange) {
     noSuggestionDiagnostics: false,
     diagnosticCodesToIgnore: [
       80001, // "File is a CommonJS module; it may be converted to an ES6 module."
+      2307, // "Cannot find module 'x'."
     ],
   })
 
