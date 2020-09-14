@@ -138,8 +138,10 @@ export function setupJavaScriptMode(content, onChange) {
 }
 
 function addTypeAnnotationToJs(js) {
-  return js.replace(
-    /^(\s*)module\.exports(\s*=)/m,
-    '$1/** @type {import("tailwindcss").TailwindConfig} */\nconst _exports$2'
+  return (
+    js.replace(
+      /^(\s*)module\.exports(\s*=)/m,
+      '$1/** @type {import("tailwindcss").TailwindConfig} */\nconst _exports$2'
+    ) + '\n;_exports' // prevent "_exports is declared but its value is never read."
   )
 }
