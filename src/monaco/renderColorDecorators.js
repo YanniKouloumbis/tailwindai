@@ -13,7 +13,7 @@ export function renderColorDecorators(editor, model, newDecorations) {
     .map(
       ({ color }, i) => `
         ._color-block-${i}::before {
-          content: '';
+          content: ' ';
           box-sizing: border-box;
           display: inline-block;
           width: 0.8em;
