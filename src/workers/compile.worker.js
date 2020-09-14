@@ -2,6 +2,7 @@ import postcss from 'postcss'
 import tailwindcss from 'tailwindcss'
 import resolveConfig from 'tailwindcss/resolveConfig'
 import extractClasses from './extractClasses'
+import { removeFunctions } from '../utils/object'
 ///////////////
 import {
   baseUrl as pageBaseUrl,
@@ -63,6 +64,7 @@ addEventListener('message', async (event) => {
     state.classNames = await extractClasses(root)
     state.separator = separator
     state.config = resolveConfig(mod.exports)
+    removeFunctions(state.config)
     state.variants = [] // TODO
     state.version = '1.8.5'
     state.editor = {
