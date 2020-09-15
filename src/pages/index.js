@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from 'react'
 import Worker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/postcss.worker.js'
 import CompressWorker from 'worker-loader?filename=static/[name].[hash].js!../workers/compress.worker.js'
 import dynamic from 'next/dynamic'
@@ -13,6 +19,8 @@ import { validateJavaScript } from '../utils/validateJavaScript'
 import { useDebouncedState } from '../hooks/useDebouncedState'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
+
+const HEADER_HEIGHT = 65
 
 function TabButton({ isActive, onClick, children }) {
   return (
@@ -35,7 +43,7 @@ export default function App() {
   const worker = useRef()
   const compressWorker = useRef()
   const [initialContent, setInitialContent] = useState()
-  const [size, setSize] = useState({ percentage: 0.5 })
+  const [size, setSize] = useState({ percentage: 0.5, layout: 'vertical' })
   const [resizing, setResizing] = useState(false)
   const [activeTab, setActiveTab] = useState('html')
   const [activePane, setActivePane] = useState('editor')
@@ -134,27 +142,31 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     function updateSize() {
       setSize((size) => {
-        const windowWidth = window.innerWidth
+        const windowSize =
+          size.layout === 'horizontal'
+            ? window.innerHeight - HEADER_HEIGHT
+            : window.innerWidth
 
-        if (isMd) {
+        if (isMd && size.layout !== 'preview') {
           const min = 320
-          const max = windowWidth - min
+          const max = windowSize - min
 
           return {
             ...size,
             min,
             max,
             current: Math.max(
-              Math.min(Math.round(windowWidth * size.percentage), max),
+              Math.min(Math.round(windowSize * size.percentage), max),
               320
             ),
           }
         }
 
-        const newSize = activePane === 'editor' ? windowWidth : 0
+        const newSize =
+          activePane === 'editor' && size.layout !== 'preview' ? windowSize : 0
 
         return {
           ...size,
@@ -169,7 +181,7 @@ export default function App() {
     return () => {
       window.removeEventListener('resize', updateSize)
     }
-  }, [isMd, setSize, activePane])
+  }, [isMd, setSize, size.layout, activePane])
 
   useEffect(() => {
     if (isMd) {
@@ -191,7 +203,11 @@ export default function App() {
 
   const updateCurrentSize = useCallback((newSize) => {
     setSize((size) => {
-      const percentage = newSize / window.innerWidth
+      const windowSize =
+        size.layout === 'vertical'
+          ? window.innerWidth
+          : window.innerHeight - HEADER_HEIGHT
+      const percentage = newSize / windowSize
       return {
         ...size,
         current: newSize,
@@ -228,87 +244,176 @@ export default function App() {
 
   return (
     <>
-      <header className="relative z-10 flex-none py-5 px-5 sm:px-8 shadow dark:shadow-white flex items-center">
+      <header className="relative z-10 flex-none py-5 px-5 sm:px-8 shadow dark:shadow-white flex md:grid grid-cols-3-balanced items-center">
         <Logo />
-        <button type="button" className="ml-auto" onClick={toggleTheme}>
-          <svg
-            className="w-5 h-5 block dark:hidden"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+        <div className="hidden md:flex space-x-5">
+          <button
+            type="button"
+            className={
+              size.layout === 'vertical'
+                ? 'text-gray-700 dark:text-white'
+                : 'text-gray-400'
+            }
+            onClick={() => setSize((size) => ({ ...size, layout: 'vertical' }))}
           >
-            <path
-              fillRule="evenodd"
-              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <svg
-            className="w-5 h-5 hidden dark:block"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+            <span className="sr-only">Switch to vertical split layout</span>
+            <svg
+              width={24}
+              height={24}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <rect x={2.75} y={4.75} width={18.5} height={14.5} rx={1.25} />
+              <path
+                d="M2.75 6C2.75 5.30964 3.30964 4.75 4 4.75H11.25V19.25H4C3.30964 19.25 2.75 18.6904 2.75 18V6Z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={
+              size.layout === 'horizontal'
+                ? 'text-gray-700 dark:text-white'
+                : 'text-gray-400'
+            }
+            onClick={() =>
+              setSize((size) => ({ ...size, layout: 'horizontal' }))
+            }
           >
-            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-          </svg>
-        </button>
+            <span className="sr-only">Switch to horizontal split layout</span>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <rect
+                x="21.25"
+                y="19.25"
+                width="18.5"
+                height="14.5"
+                rx="1.25"
+                transform="rotate(-180 21.25 19.25)"
+              />
+              <path
+                d="M21.25 11.25L2.75 11.25L2.75 6C2.75 5.30964 3.30964 4.75 4 4.75L20 4.75C20.6904 4.75 21.25 5.30964 21.25 6L21.25 11.25Z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={
+              size.layout === 'preview'
+                ? 'text-gray-700 dark:text-white'
+                : 'text-gray-400'
+            }
+            onClick={() => setSize((size) => ({ ...size, layout: 'preview' }))}
+          >
+            <span className="sr-only">Switch to preview-only layout</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect
+                x="2.75"
+                y="4.75"
+                width="18.5"
+                height="14.5"
+                rx="1.25"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="flex justify-end ml-auto">
+          <button type="button" className="text-gray-400" onClick={toggleTheme}>
+            <span className="sr-only">Toggle theme</span>
+            <svg
+              className="w-5 h-5 block dark:hidden"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <svg
+              className="w-5 h-5 hidden dark:block"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+            </svg>
+          </button>
+        </div>
       </header>
       <main className="flex-auto relative">
         {initialContent && typeof size.current !== 'undefined' ? (
           <>
-            <div className="flex flex-none px-5 sm:px-8 py-2 space-x-3 absolute z-10 top-0 left-0">
-              <TabButton
-                isActive={
-                  (isMd || activePane === 'editor') && activeTab === 'html'
-                }
-                onClick={() => {
-                  setActivePane('editor')
-                  setActiveTab('html')
-                }}
-              >
-                HTML
-              </TabButton>
-              <TabButton
-                isActive={
-                  (isMd || activePane === 'editor') && activeTab === 'css'
-                }
-                onClick={() => {
-                  setActivePane('editor')
-                  setActiveTab('css')
-                }}
-              >
-                CSS
-              </TabButton>
-              <TabButton
-                isActive={
-                  (isMd || activePane === 'editor') && activeTab === 'config'
-                }
-                onClick={() => {
-                  setActivePane('editor')
-                  setActiveTab('config')
-                }}
-              >
-                Config
-              </TabButton>
-              {!isMd && (
+            {(!isMd || size.layout !== 'preview') && (
+              <div className="flex flex-none px-5 sm:px-8 py-2 space-x-3 absolute z-10 top-0 left-0">
                 <TabButton
-                  isActive={activePane === 'preview'}
+                  isActive={
+                    (isMd || activePane === 'editor') && activeTab === 'html'
+                  }
                   onClick={() => {
-                    setActivePane('preview')
+                    setActivePane('editor')
+                    setActiveTab('html')
                   }}
                 >
-                  Preview
+                  HTML
                 </TabButton>
-              )}
-            </div>
+                <TabButton
+                  isActive={
+                    (isMd || activePane === 'editor') && activeTab === 'css'
+                  }
+                  onClick={() => {
+                    setActivePane('editor')
+                    setActiveTab('css')
+                  }}
+                >
+                  CSS
+                </TabButton>
+                <TabButton
+                  isActive={
+                    (isMd || activePane === 'editor') && activeTab === 'config'
+                  }
+                  onClick={() => {
+                    setActivePane('editor')
+                    setActiveTab('config')
+                  }}
+                >
+                  Config
+                </TabButton>
+                {!isMd && (
+                  <TabButton
+                    isActive={activePane === 'preview'}
+                    onClick={() => {
+                      setActivePane('preview')
+                    }}
+                  >
+                    Preview
+                  </TabButton>
+                )}
+              </div>
+            )}
             <SplitPane
-              split="vertical"
+              split={size.layout === 'horizontal' ? 'horizontal' : 'vertical'}
               minSize={size.min}
               maxSize={size.max}
               size={size.current}
               onChange={updateCurrentSize}
+              paneStyle={{ overflow: 'hidden' }}
               pane1Style={{ display: 'flex', flexDirection: 'column' }}
               onDragStarted={() => setResizing(true)}
               onDragFinished={() => setResizing(false)}
-              allowResize={isMd}
+              allowResize={isMd && size.layout !== 'preview'}
             >
               <div className="border-t border-gray-200 dark:border-gray-600 mt-10 flex-auto flex">
                 {renderEditor && (
