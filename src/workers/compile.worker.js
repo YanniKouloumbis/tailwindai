@@ -37,19 +37,32 @@ addEventListener('message', async (event) => {
 
   let mod = {}
 
+  const before = `(async function(module, self){
+    const require = async (m) => {
+      if (typeof m !== 'string' || m === '') throw Error('No module')
+      const result = await self.importShim('https://cdn.skypack.dev/' + m)
+      return result.default || result
+    }`
+  const after = `})(mod, {})`
+
   try {
-    await eval(`
-      (async function(module){
-        const require = async (m) => {
-          if (!m) throw Error('No module')
-          const result = await self.importShim('https://cdn.skypack.dev/' + m)
-          return result.default || result
-        }
-        ${event.data.config.replace(/\brequire\(/g, 'await require(')}
-      })(mod)
-    `)
-  } catch (_) {
-    return respond({ error: true })
+    await eval(
+      before +
+        '\n' +
+        event.data.config.replace(/\brequire\(/g, 'await require(') +
+        '\n' +
+        after
+    )
+  } catch (error) {
+    const match = error.stack.match(/:([0-9]+):([0-9]+)/)
+
+    return respond({
+      error: {
+        message: error.message,
+        file: 'Config',
+        line: match === null ? undefined : parseInt(match[1], 10) - before.split('\n').length,
+      },
+    })
   }
 
   let state = {}
@@ -90,8 +103,15 @@ addEventListener('message', async (event) => {
       state,
       css: css.replace(/__TAILWIND_SEPARATOR__/g, escapedSeparator),
     })
-  } catch (_) {
-    respond({ error: true })
+  } catch (error) {
+    if (error.toString().startsWith('CssSyntaxError')) {
+      const match = error.message.match(
+        /^<css input>:([0-9]+):([0-9]+): (.*?)$/
+      )
+      respond({ error: { message: match[3], file: 'CSS', line: match[1] } })
+    } else {
+      respond({ error: { message: error.message } })
+    }
   }
 })
 

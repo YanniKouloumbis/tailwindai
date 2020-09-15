@@ -9,6 +9,8 @@ import SplitPane from 'react-split-pane'
 import { Logo } from '../components/Logo'
 import useMedia from 'react-use/lib/useMedia'
 import defaultContent from '../preval/defaultContent'
+import { validateJavaScript } from '../utils/validateJavaScript'
+import { useDebouncedState } from '../hooks/useDebouncedState'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
 
@@ -39,6 +41,12 @@ export default function App() {
   const [activePane, setActivePane] = useState('editor')
   const isMd = useMedia('(min-width: 768px)')
   const [renderEditor, setRenderEditor] = useState(false)
+  const [
+    error,
+    setError,
+    setErrorImmediate,
+    cancelSetError,
+  ] = useDebouncedState(undefined, 1000)
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -46,18 +54,28 @@ export default function App() {
     })
   }, [])
 
-  const compileNow = useCallback(async (content) => {
+  async function compileNow(content) {
+    let validateResult = await validateJavaScript(content.config)
+    if (!validateResult.isValid) {
+      return setError({ ...validateResult.error, file: 'Config' })
+    }
+    cancelSetError()
     const { css, canceled, error } = await requestResponse(worker.current, {
       config: content.config,
       css: content.css,
     })
-    if (canceled || error) {
+    if (canceled) {
       return
     }
+    if (error) {
+      setError(error)
+      return
+    }
+    setErrorImmediate()
     if (css) {
       previewRef.current.contentWindow.postMessage({ css })
     }
-  }, [])
+  }
 
   const compile = useCallback(debounce(compileNow, 200), [])
 
@@ -114,7 +132,7 @@ export default function App() {
       worker.current.terminate()
       compressWorker.current.terminate()
     }
-  }, [compileNow, injectHtml])
+  }, [])
 
   useEffect(() => {
     function updateSize() {
@@ -302,21 +320,22 @@ export default function App() {
                   />
                 )}
               </div>
-              <iframe
-                ref={previewRef}
-                title="Preview"
-                className={`absolute inset-0 w-full h-full bg-white ${
-                  resizing ? 'pointer-events-none' : ''
-                } ${
-                  isMd
-                    ? ''
-                    : 'mt-10 border-t border-gray-200 dark:border-gray-600'
-                }`}
-                onLoad={() => {
-                  injectHtml(initialContent.html)
-                  compileNow(initialContent)
-                }}
-                srcDoc={`
+              <div className="absolute inset-0 w-full h-full">
+                <iframe
+                  ref={previewRef}
+                  title="Preview"
+                  className={`absolute inset-0 w-full h-full bg-white ${
+                    resizing ? 'pointer-events-none' : ''
+                  } ${
+                    isMd
+                      ? ''
+                      : 'mt-10 border-t border-gray-200 dark:border-gray-600'
+                  }`}
+                  onLoad={() => {
+                    injectHtml(initialContent.html)
+                    compileNow(initialContent)
+                  }}
+                  srcDoc={`
                   <!DOCTYPE html>
                   <html>
                     <head>
@@ -353,7 +372,18 @@ export default function App() {
                     </body>
                   </html>
                 `}
-              />
+                />
+                {error && (
+                  <div className="absolute inset-0 w-full h-full bg-red-500 text-white p-8 text-lg">
+                    <p>
+                      {error.file} error: {error.message}
+                    </p>
+                    {typeof error.line !== 'undefined' ? (
+                      <p>Line: {error.line}</p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
             </SplitPane>
           </>
         ) : null}
