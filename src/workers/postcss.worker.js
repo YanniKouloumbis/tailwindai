@@ -95,6 +95,6 @@ addEventListener('message', async (event) => {
     state = result.state
     postMessage({ _id: event.data._id, css: result.css })
   } else {
-    postMessage({ _id: event.data._id, ...result })
+    postMessage({ ...result, _id: event.data._id })
   }
 })
