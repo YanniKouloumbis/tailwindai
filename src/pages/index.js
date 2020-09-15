@@ -152,7 +152,7 @@ export default function App() {
             : window.innerWidth
 
         if (isMd && size.layout !== 'preview') {
-          const min = 320
+          const min = 321
           const max = windowSize - min
 
           return {
@@ -161,7 +161,7 @@ export default function App() {
             max,
             current: Math.max(
               Math.min(Math.round(windowSize * size.percentage), max),
-              320
+              min
             ),
           }
         }
