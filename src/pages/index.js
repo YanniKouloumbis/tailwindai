@@ -17,6 +17,7 @@ import useMedia from 'react-use/lib/useMedia'
 import defaultContent from '../preval/defaultContent'
 import { validateJavaScript } from '../utils/validateJavaScript'
 import { useDebouncedState } from '../hooks/useDebouncedState'
+import { Preview } from '../components/Preview'
 
 const Editor = dynamic(import('../components/Editor'), { ssr: false })
 
@@ -426,9 +427,8 @@ export default function App() {
                 )}
               </div>
               <div className="absolute inset-0 w-full h-full">
-                <iframe
+                <Preview
                   ref={previewRef}
-                  title="Preview"
                   className={`absolute inset-0 w-full h-full bg-white ${
                     resizing ? 'pointer-events-none' : ''
                   } ${
@@ -440,43 +440,9 @@ export default function App() {
                     injectHtml(initialContent.html)
                     compileNow(initialContent)
                   }}
-                  srcDoc={`
-                  <!DOCTYPE html>
-                  <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1">
-                      <style id="_style">${
-                        isDefaultContent ? defaultContent.compiledCss : ''
-                      }</style>
-                      <script>
-                      var hasHtml = false
-                      var hasCss = ${isDefaultContent ? 'true' : 'false'}
-                      var visible = false
-                      window.addEventListener('message', (e) => {
-                        if ('css' in e.data) {
-                          const style = document.getElementById('_style')
-                          const newStyle = document.createElement('style')
-                          newStyle.id = '_style'
-                          newStyle.innerHTML = e.data.css
-                          style.parentNode.replaceChild(newStyle, style)
-                          hasCss = true
-                        }
-                        if ('html' in e.data) {
-                          document.body.innerHTML = e.data.html
-                          hasHtml = true
-                        }
-                        if (!visible && hasHtml && hasCss) {
-                          visible = true
-                          document.body.style.display = ''
-                        }
-                      })
-                      </script>
-                    </head>
-                    <body style="display:none">
-                    </body>
-                  </html>
-                `}
+                  initialCss={
+                    isDefaultContent ? defaultContent.compiledCss : ''
+                  }
                 />
                 {error && (
                   <div className="absolute inset-0 w-full h-full bg-red-500 text-white p-8 text-lg">
