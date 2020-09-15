@@ -13,6 +13,21 @@ body.cursor-col-resize * {
   cursor: col-resize !important;
 }
 
+body.cursor-ew-resize,
+body.cursor-ew-resize * {
+  cursor: ew-resize !important;
+}
+
+body.cursor-ns-resize,
+body.cursor-ns-resize * {
+  cursor: ns-resize !important;
+}
+
+body.cursor-nwse-resize,
+body.cursor-nwse-resize * {
+  cursor: nwse-resize !important;
+}
+
 .disable-transitions * {
   transition: none !important;
 }
