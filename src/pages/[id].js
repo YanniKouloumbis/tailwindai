@@ -40,7 +40,7 @@ export async function getServerSideProps({ params, res }) {
     if (initialContent) {
       res.setHeader(
         'cache-control',
-        'public, max-age=0, must-revalidate, s-maxage=60'
+        'public, max-age=0, must-revalidate, s-maxage=31536000'
       )
     }
 
