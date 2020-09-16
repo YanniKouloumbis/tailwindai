@@ -8,7 +8,7 @@ export default function Pen({ errorCode, initialContent }) {
   return initialContent.html
 }
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params, res }) {
   const AWS = require('aws-sdk')
 
   const db = new AWS.DynamoDB.DocumentClient({
@@ -35,6 +35,13 @@ export async function getServerSideProps({ params }) {
 
   try {
     const { Item: initialContent } = await get(params.id)
+
+    if (initialContent) {
+      res.setHeader(
+        'cache-control',
+        'private, no-cache, no-store, max-age=0, must-revalidate, s-maxage=60'
+      )
+    }
 
     return {
       props: initialContent
