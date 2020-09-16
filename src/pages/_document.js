@@ -6,6 +6,7 @@ class InlineStylesHead extends Head {
   getCssLinks(files) {
     return files.sharedFiles
       .filter((file) => /\.css$/.test(file))
+      .filter((file) => fs.existsSync(path.join(process.cwd(), '.next', file)))
       .map((file) => (
         <style
           key={file}
