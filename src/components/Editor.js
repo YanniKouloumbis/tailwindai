@@ -27,7 +27,7 @@ export default function Editor({
     return () => {
       editorRef.current.dispose()
     }
-  }, [initialContent, onChange, worker, inRef])
+  }, [initialContent, onChange, worker])
 
   useEffect(() => {
     const target = document.querySelector('html')
