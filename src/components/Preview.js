@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState, useRef } from 'react'
+import { forwardRef, useEffect, useLayoutEffect, useState, useRef } from 'react'
 
 export const Preview = forwardRef(
   (
@@ -16,6 +16,7 @@ export const Preview = forwardRef(
     const [responsiveSize, setResponsiveSize] = useState({
       width: 540,
       height: 720,
+      zoom: 1,
     })
     const [resizing, setResizing] = useState()
     const timeout = useRef()
@@ -41,49 +42,79 @@ export const Preview = forwardRef(
       }
     }, [])
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+      function constrainWidth(desiredWidth) {
+        const zoom =
+          desiredWidth > size.width - 34 ? (size.width - 34) / desiredWidth : 1
+        return {
+          width: Math.min(
+            Math.max(50, Math.round(desiredWidth * (1 / zoom))),
+            Math.round((size.width - 34) * (1 / zoom))
+          ),
+          zoom,
+        }
+      }
+      function constrainHeight(desiredHeight) {
+        const zoom =
+          desiredHeight > size.height - 17 - 40
+            ? (size.height - 17 - 40) / desiredHeight
+            : 1
+        return {
+          height: Math.min(
+            Math.max(50, Math.round(desiredHeight * (1 / zoom))),
+            Math.round((size.height - 17 - 40) * (1 / zoom))
+          ),
+          zoom,
+        }
+      }
+      function constrainSize(desiredWidth, desiredHeight) {
+        const { width, zoom: widthZoom } = constrainWidth(desiredWidth)
+        const { height, zoom: heightZoom } = constrainHeight(desiredHeight)
+        return {
+          width,
+          height,
+          zoom: Math.min(widthZoom, heightZoom),
+        }
+      }
+
+      if (size.width && size.height) {
+        setResponsiveSize(({ width, height }) => constrainSize(width, height))
+      }
+
       if (resizing) {
-        function constrainWidth(desiredWidth) {
-          return Math.min(Math.max(50, desiredWidth), size.width - 34)
-        }
-        function constrainHeight(desiredHeight) {
-          return Math.min(Math.max(50, desiredHeight), size.height - 17 - 40)
-        }
         function onMouseMove(e) {
           if (resizing.handle === 'bottom') {
             document.body.classList.add('cursor-ns-resize')
-            setResponsiveSize(({ width }) => ({
-              width,
-              height: constrainHeight(
+            setResponsiveSize(({ width }) =>
+              constrainSize(
+                width,
                 resizing.startHeight + (e.clientY - resizing.startY)
-              ),
-            }))
+              )
+            )
           } else if (resizing.handle === 'left') {
             document.body.classList.add('cursor-ew-resize')
-            setResponsiveSize(({ height }) => ({
-              width: constrainWidth(
-                resizing.startWidth - (e.clientX - resizing.startX) * 2
-              ),
-              height,
-            }))
+            setResponsiveSize(({ height }) =>
+              constrainSize(
+                resizing.startWidth - (e.clientX - resizing.startX) * 2,
+                height
+              )
+            )
           } else if (resizing.handle === 'right') {
             document.body.classList.add('cursor-ew-resize')
-            setResponsiveSize(({ height }) => ({
-              width: constrainWidth(
-                resizing.startWidth + (e.clientX - resizing.startX) * 2
-              ),
-              height,
-            }))
+            setResponsiveSize(({ height }) =>
+              constrainSize(
+                resizing.startWidth + (e.clientX - resizing.startX) * 2,
+                height
+              )
+            )
           } else if (resizing.handle === 'bottom-right') {
             document.body.classList.add('cursor-nwse-resize')
-            setResponsiveSize({
-              width: constrainWidth(
-                resizing.startWidth + (e.clientX - resizing.startX) * 2
-              ),
-              height: constrainHeight(
+            setResponsiveSize(() =>
+              constrainSize(
+                resizing.startWidth + (e.clientX - resizing.startX) * 2,
                 resizing.startHeight + (e.clientY - resizing.startY)
-              ),
-            })
+              )
+            )
           }
         }
         function onMouseUp() {
@@ -107,15 +138,6 @@ export const Preview = forwardRef(
       }
     }, [resizing, size])
 
-    useEffect(() => {
-      if (size.width && size.height) {
-        setResponsiveSize(({ width, height }) => ({
-          width: Math.min(width, size.width - 34),
-          height: Math.min(height, size.height - 17 - 40),
-        }))
-      }
-    }, [size.width, size.height])
-
     return (
       <div
         className={`absolute inset-0 w-full h-full flex flex-col ${className}`}
@@ -126,7 +148,8 @@ export const Preview = forwardRef(
             <div>
               {responsiveSize.width}px{' '}
               <span className="text-sm font-medium">×</span>{' '}
-              {responsiveSize.height}px
+              {responsiveSize.height}px ({Math.round(responsiveSize.zoom * 100)}
+              %)
             </div>
           </div>
         )}
@@ -164,19 +187,45 @@ export const Preview = forwardRef(
             </div>
           )}
           <div
-            className="relative"
-            style={responsiveDesignMode ? responsiveSize : {}}
+            className={`relative ${
+              responsiveDesignMode
+                ? 'border border-gray-200 dark:border-gray-700 overflow-hidden'
+                : ''
+            }`}
+            style={
+              responsiveDesignMode
+                ? {
+                    width: Math.round(
+                      responsiveSize.width * responsiveSize.zoom
+                    ),
+                    height: Math.round(
+                      responsiveSize.height * responsiveSize.zoom
+                    ),
+                  }
+                : {}
+            }
           >
             <iframe
               ref={ref}
               title="Preview"
-              style={responsiveDesignMode ? responsiveSize : {}}
+              style={
+                responsiveDesignMode
+                  ? {
+                      width: responsiveSize.width,
+                      height: responsiveSize.height,
+                      marginLeft:
+                        (responsiveSize.width -
+                          Math.round(
+                            responsiveSize.width * responsiveSize.zoom
+                          )) /
+                        -2,
+                      transformOrigin: 'top',
+                      transform: `scale(${responsiveSize.zoom})`,
+                    }
+                  : {}
+              }
               onLoad={onLoad}
               className={`absolute inset-0 w-full h-full bg-white ${
-                responsiveDesignMode
-                  ? 'border border-gray-200 dark:border-gray-700'
-                  : ''
-              } ${
                 resizing ? 'pointer-events-none select-none' : ''
               } ${iframeClassName}`}
               srcDoc={`
