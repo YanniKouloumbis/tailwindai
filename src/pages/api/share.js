@@ -51,8 +51,8 @@ export default async function share(req, res) {
     })
     res.statusCode = 200
     res.json({ ID })
-  } catch (err) {
-    console.log(err)
+  } catch (error) {
+    console.error(error)
     res.statusCode = 500
     res.json({ error: true })
   }

@@ -43,7 +43,8 @@ export async function getServerSideProps({ params }) {
             errorCode: 404,
           },
     }
-  } catch (_) {
+  } catch (error) {
+    console.error(error)
     return {
       props: {
         errorCode: 500,
