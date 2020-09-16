@@ -6,10 +6,8 @@ import {
   useCallback,
 } from 'react'
 import Worker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/postcss.worker.js'
-import CompressWorker from 'worker-loader?filename=static/[name].[hash].js!../workers/compress.worker.js'
 import dynamic from 'next/dynamic'
-import LZString from 'lz-string'
-import { createWorkerQueue, requestResponse } from '../utils/workers'
+import { requestResponse } from '../utils/workers'
 import { debounce } from 'debounce'
 import SplitPane from 'react-split-pane'
 import { Logo } from '../components/Logo'
@@ -101,11 +99,9 @@ function Share({ editorRef }) {
   )
 }
 
-export default function App({ initialContent: initialContentProp }) {
+export default function App({ initialContent = defaultContent }) {
   const previewRef = useRef()
   const worker = useRef()
-  const compressWorker = useRef()
-  const [initialContent, setInitialContent] = useState(initialContentProp)
   const [size, setSize] = useState({ percentage: 0.5, layout: 'vertical' })
   const [resizing, setResizing] = useState(false)
   const [activeTab, setActiveTab] = useState('html')
@@ -151,18 +147,6 @@ export default function App({ initialContent: initialContentProp }) {
 
   const compile = useCallback(debounce(compileNow, 200), [])
 
-  const updateUrl = useCallback(async (content) => {
-    let { compressed, canceled, error } = await compressWorker.current.emit({
-      string: JSON.stringify(content),
-    })
-    if (canceled || error) {
-      return
-    }
-    if (compressed) {
-      window.history.replaceState({}, '', `#${compressed}`)
-    }
-  }, [])
-
   const onChange = useCallback(
     (document, content) => {
       if (document === 'html') {
@@ -170,45 +154,16 @@ export default function App({ initialContent: initialContentProp }) {
       } else {
         compile({ css: content.css, config: content.config })
       }
-      updateUrl(content)
     },
-    [injectHtml, compile, updateUrl]
+    [injectHtml, compile]
   )
 
   useEffect(() => {
     worker.current = new Worker()
-    compressWorker.current = createWorkerQueue(CompressWorker)
-
     return () => {
       worker.current.terminate()
-      compressWorker.current.terminate()
     }
   }, [])
-
-  useEffect(() => {
-    if (!initialContent) {
-      const content = { ...defaultContent }
-
-      if (window.location.hash) {
-        try {
-          Object.assign(
-            content,
-            JSON.parse(
-              LZString.decompressFromEncodedURIComponent(
-                window.location.hash.substr(1)
-              )
-            )
-          )
-        } catch (_) {}
-      }
-
-      setInitialContent({
-        html: content.html,
-        css: content.css,
-        config: content.config,
-      })
-    }
-  }, [initialContent])
 
   useLayoutEffect(() => {
     function updateSize() {
@@ -305,7 +260,6 @@ export default function App({ initialContent: initialContentProp }) {
   }
 
   const isDefaultContent =
-    initialContent &&
     initialContent.html === defaultContent.html &&
     initialContent.css === defaultContent.css &&
     initialContent.config === defaultContent.config
