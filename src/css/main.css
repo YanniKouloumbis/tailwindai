@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/tailwind.css';
+@import './_codemirror.css';
+@import './_codemirror-material.css';
 
 #__next {
   width: 100%;
@@ -11,6 +11,21 @@
 body.cursor-col-resize,
 body.cursor-col-resize * {
   cursor: col-resize !important;
+}
+
+body.cursor-ew-resize,
+body.cursor-ew-resize * {
+  cursor: ew-resize !important;
+}
+
+body.cursor-ns-resize,
+body.cursor-ns-resize * {
+  cursor: ns-resize !important;
+}
+
+body.cursor-nwse-resize,
+body.cursor-nwse-resize * {
+  cursor: nwse-resize !important;
 }
 
 .disable-transitions * {

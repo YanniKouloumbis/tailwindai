@@ -16,8 +16,14 @@ import defaultContent from '../preval/defaultContent'
 import { validateJavaScript } from '../utils/validateJavaScript'
 import { useDebouncedState } from '../hooks/useDebouncedState'
 import { Preview } from '../components/Preview'
+import isMobile from 'is-mobile'
 
-const Editor = dynamic(import('../components/Editor'), { ssr: false })
+const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
+const EditorMobile = dynamic(import('../components/EditorMobile'), {
+  ssr: false,
+})
+
+const Editor = isMobile() ? EditorMobile : EditorDesktop
 
 const HEADER_HEIGHT = 65
 
@@ -115,6 +121,7 @@ export default function App({ initialContent = defaultContent }) {
     cancelSetError,
   ] = useDebouncedState(undefined, 1000)
   const editorRef = useRef()
+  const [responsiveDesignMode, setResponsiveDesignMode] = useState(false)
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -353,6 +360,36 @@ export default function App({ initialContent = defaultContent }) {
               />
             </svg>
           </button>
+          <div className="w-px h-8 bg-gray-200 dark:bg-gray-600" />
+          <button
+            type="button"
+            className={
+              responsiveDesignMode
+                ? 'text-gray-700 dark:text-white'
+                : 'text-gray-400'
+            }
+            onClick={() => setResponsiveDesignMode(!responsiveDesignMode)}
+          >
+            <span className="sr-only">Toggle responsive design mode</span>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <rect x="6.75" y="2.75" width="14.5" height="18.5" rx="1.25" />
+              <rect
+                x="2.75"
+                y="8.75"
+                width="8.5"
+                height="12.5"
+                rx="1.25"
+                className="fill-white dark:fill-gray-800"
+              />
+            </svg>
+          </button>
         </div>
         <div className="flex justify-end ml-auto">
           <button type="button" className="text-gray-400" onClick={toggleTheme}>
@@ -454,13 +491,13 @@ export default function App({ initialContent = defaultContent }) {
               <div className="absolute inset-0 w-full h-full">
                 <Preview
                   ref={previewRef}
-                  className={`absolute inset-0 w-full h-full bg-white ${
-                    resizing ? 'pointer-events-none' : ''
-                  } ${
+                  responsiveDesignMode={isMd && responsiveDesignMode}
+                  iframeClassName={resizing ? 'pointer-events-none' : ''}
+                  className={
                     isMd
                       ? ''
                       : 'mt-10 border-t border-gray-200 dark:border-gray-600'
-                  }`}
+                  }
                   onLoad={() => {
                     injectHtml(initialContent.html)
                     compileNow(initialContent)

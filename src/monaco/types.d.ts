@@ -46,7 +46,7 @@ type ExperimentalSettings =
 
 type ExperimentalConfig =
   | "all"
-  | Record<ExperimentalSettings, boolean>
+  | Partial<Record<ExperimentalSettings, boolean>>
   | ExperimentalSettings[];
 
 type ThemeConfig = Partial<{
@@ -177,6 +177,9 @@ type ThemeConfig = Partial<{
     center: boolean;
     padding: string | KeyValuePair;
   }>;
+
+  /** Custom */
+  [key: string]: any;
 }>;
 
 type VariantsConfig = string[] | Record<string, string[]>;
