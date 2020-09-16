@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/tailwind.css';
+@import './_codemirror.css';
+@import './_codemirror-material.css';
 
 #__next {
   width: 100%;

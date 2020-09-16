@@ -18,8 +18,14 @@ import defaultContent from '../preval/defaultContent'
 import { validateJavaScript } from '../utils/validateJavaScript'
 import { useDebouncedState } from '../hooks/useDebouncedState'
 import { Preview } from '../components/Preview'
+import isMobile from 'is-mobile'
 
-const Editor = dynamic(import('../components/Editor'), { ssr: false })
+const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
+const EditorMobile = dynamic(import('../components/EditorMobile'), {
+  ssr: false,
+})
+
+const Editor = isMobile() ? EditorMobile : EditorDesktop
 
 const HEADER_HEIGHT = 65
 
