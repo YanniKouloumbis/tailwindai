@@ -88,7 +88,7 @@ function Share({ editorRef }) {
           className="underline"
           onClick={() => {
             navigator.clipboard
-              .writeText(window.location.href + ID)
+              .writeText(window.location.origin + '/' + ID)
               .then(() => {
                 window.alert('Copied!')
               })
