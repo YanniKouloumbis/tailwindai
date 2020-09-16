@@ -1,27 +1,4 @@
 import NextDocument, { Html, Head, Main, NextScript } from 'next/document'
-import * as fs from 'fs'
-import * as path from 'path'
-
-class InlineStylesHead extends Head {
-  getCssLinks(files) {
-    return files.sharedFiles
-      .filter((file) => /\.css$/.test(file))
-      .filter((file) => fs.existsSync(path.join(process.cwd(), '.next', file)))
-      .map((file) => (
-        <style
-          key={file}
-          nonce={this.props.nonce}
-          data-href={`${this.context.assetPrefix}/_next/${file}`}
-          dangerouslySetInnerHTML={{
-            __html: fs.readFileSync(
-              path.join(process.cwd(), '.next', file),
-              'utf-8'
-            ),
-          }}
-        />
-      ))
-  }
-}
 
 export default class Document extends NextDocument {
   static async getInitialProps(ctx) {
@@ -32,7 +9,7 @@ export default class Document extends NextDocument {
   render() {
     return (
       <Html lang="en" className="h-full">
-        <InlineStylesHead>
+        <Head>
           <script
             dangerouslySetInnerHTML={{
               __html: `
@@ -51,7 +28,7 @@ export default class Document extends NextDocument {
                 .replace("'inlocal", "' in local"),
             }}
           />
-        </InlineStylesHead>
+        </Head>
         <body className="min-h-full flex text-gray-700 dark:text-white bg-white dark:bg-gray-800">
           <Main />
           <NextScript />
