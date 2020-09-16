@@ -7,23 +7,27 @@ export default function Editor({
   onChange,
   worker,
   activeTab,
+  editorRef: inRef
 }) {
   const editorContainerRef = useRef()
   const editorRef = useRef()
   const editorState = useRef({})
 
   useEffect(() => {
-    editorRef.current = createMonacoEditor({
+    const editor = createMonacoEditor({
       container: editorContainerRef.current,
       initialContent,
       onChange,
       worker,
     })
 
+    editorRef.current = editor
+    inRef(editor)
+
     return () => {
       editorRef.current.dispose()
     }
-  }, [initialContent, onChange, worker])
+  }, [initialContent, onChange, worker, inRef])
 
   useEffect(() => {
     const target = document.querySelector('html')

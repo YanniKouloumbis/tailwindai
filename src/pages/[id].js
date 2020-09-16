@@ -1,3 +1,4 @@
+import App from './index'
 import Error from 'next/error'
 
 export default function Pen({ errorCode, initialContent }) {
@@ -5,7 +6,7 @@ export default function Pen({ errorCode, initialContent }) {
     return <Error statusCode={errorCode} />
   }
 
-  return initialContent.html
+  return <App initialContent={initialContent} />
 }
 
 export async function getServerSideProps({ params, res }) {

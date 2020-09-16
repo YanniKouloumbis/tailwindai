@@ -39,11 +39,73 @@ function TabButton({ isActive, onClick, children }) {
   )
 }
 
-export default function App() {
+function Share({ editorRef }) {
+  const [{ state, ID }, setState] = useState({ state: 'idle' })
+
+  useEffect(() => {
+    let current = true
+    if (state === 'loading') {
+      window
+        .fetch('/api/share', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            html: editorRef.current.documents.html.model.getValue(),
+            css: editorRef.current.documents.css.model.getValue(),
+            config: editorRef.current.documents.config.model.getValue(),
+          }),
+        })
+        .then((res) => res.json())
+        .then((res) => {
+          if (current) {
+            setState({ state: 'complete', ID: res.ID })
+          }
+        })
+    }
+    return () => {
+      current = false
+    }
+  }, [state, editorRef])
+
+  return (
+    <div className="flex space-x-5">
+      {state !== 'loading' && (
+        <button
+          type="button"
+          onClick={() => {
+            setState({ state: 'loading' })
+          }}
+        >
+          Share
+        </button>
+      )}
+      {state === 'loading' && <p>Loading...</p>}
+      {state === 'complete' && (
+        <button
+          type="button"
+          className="underline"
+          onClick={() => {
+            navigator.clipboard
+              .writeText(window.location.href + ID)
+              .then(() => {
+                window.alert('Copied!')
+              })
+          }}
+        >
+          {ID}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export default function App({ initialContent: initialContentProp }) {
   const previewRef = useRef()
   const worker = useRef()
   const compressWorker = useRef()
-  const [initialContent, setInitialContent] = useState()
+  const [initialContent, setInitialContent] = useState(initialContentProp)
   const [size, setSize] = useState({ percentage: 0.5, layout: 'vertical' })
   const [resizing, setResizing] = useState(false)
   const [activeTab, setActiveTab] = useState('html')
@@ -56,6 +118,7 @@ export default function App() {
     setErrorImmediate,
     cancelSetError,
   ] = useDebouncedState(undefined, 1000)
+  const editorRef = useRef()
 
   const injectHtml = useCallback((html) => {
     previewRef.current.contentWindow.postMessage({
@@ -116,32 +179,36 @@ export default function App() {
     worker.current = new Worker()
     compressWorker.current = createWorkerQueue(CompressWorker)
 
-    const content = { ...defaultContent }
-
-    if (window.location.hash) {
-      try {
-        Object.assign(
-          content,
-          JSON.parse(
-            LZString.decompressFromEncodedURIComponent(
-              window.location.hash.substr(1)
-            )
-          )
-        )
-      } catch (_) {}
-    }
-
-    setInitialContent({
-      html: content.html,
-      css: content.css,
-      config: content.config,
-    })
-
     return () => {
       worker.current.terminate()
       compressWorker.current.terminate()
     }
   }, [])
+
+  useEffect(() => {
+    if (!initialContent) {
+      const content = { ...defaultContent }
+
+      if (window.location.hash) {
+        try {
+          Object.assign(
+            content,
+            JSON.parse(
+              LZString.decompressFromEncodedURIComponent(
+                window.location.hash.substr(1)
+              )
+            )
+          )
+        } catch (_) {}
+      }
+
+      setInitialContent({
+        html: content.html,
+        css: content.css,
+        config: content.config,
+      })
+    }
+  }, [initialContent])
 
   useLayoutEffect(() => {
     function updateSize() {
@@ -246,7 +313,10 @@ export default function App() {
   return (
     <>
       <header className="relative z-10 flex-none py-5 px-5 sm:px-8 shadow dark:shadow-white flex md:grid grid-cols-3-balanced items-center">
-        <Logo />
+        <div className="flex items-center space-x-5">
+          <Logo />
+          <Share editorRef={editorRef} />
+        </div>
         <div className="hidden md:flex space-x-5">
           <button
             type="button"
@@ -419,6 +489,7 @@ export default function App() {
               <div className="border-t border-gray-200 dark:border-gray-600 mt-10 flex-auto flex">
                 {renderEditor && (
                   <Editor
+                    editorRef={(ref) => (editorRef.current = ref)}
                     initialContent={initialContent}
                     onChange={onChange}
                     worker={worker}
