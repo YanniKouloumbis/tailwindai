@@ -16,6 +16,19 @@ import {
   resolvedPromise,
 } from './es-module-shims/common.js'
 import { init, parse } from 'es-module-lexer/dist/lexer.js'
+const applyComplexClasses = require('tailwindcss/lib/flagged/applyComplexClasses')
+
+// TODO
+let _applyComplexClasses = applyComplexClasses.default
+applyComplexClasses.default = (...args) => {
+  let fn = _applyComplexClasses(...args)
+  return (css) => {
+    css.walkRules((rule) => {
+      rule.selector = rule.selector.replace(/__TWSEP__(.*?)__TWSEP__/g, '$1')
+    })
+    fn(css)
+  }
+}
 
 let current
 
@@ -60,7 +73,10 @@ addEventListener('message', async (event) => {
       error: {
         message: error.message,
         file: 'Config',
-        line: match === null ? undefined : parseInt(match[1], 10) - before.split('\n').length,
+        line:
+          match === null
+            ? undefined
+            : parseInt(match[1], 10) - before.split('\n').length,
       },
     })
   }
@@ -69,7 +85,7 @@ addEventListener('message', async (event) => {
 
   try {
     const separator = mod.exports.separator || ':'
-    mod.exports.separator = '__TAILWIND_SEPARATOR__'
+    mod.exports.separator = `__TWSEP__${separator}__TWSEP__`
     const { css, root } = await postcss([
       tailwindcss(mod.exports),
     ]).process(event.data.css, { from: undefined })
@@ -101,7 +117,7 @@ addEventListener('message', async (event) => {
     )
     respond({
       state,
-      css: css.replace(/__TAILWIND_SEPARATOR__/g, escapedSeparator),
+      css: css.replace(/__TWSEP__.*?__TWSEP__/g, escapedSeparator),
     })
   } catch (error) {
     if (error.toString().startsWith('CssSyntaxError')) {

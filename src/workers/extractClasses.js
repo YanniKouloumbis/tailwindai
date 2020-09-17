@@ -76,7 +76,7 @@ async function process(root) {
 
     for (let i = 0; i < classNames.length; i++) {
       const context = keys.concat([])
-      const baseKeys = classNames[i].className.split('__TAILWIND_SEPARATOR__')
+      const baseKeys = classNames[i].className.split(/__TWSEP__.*?__TWSEP__/)
       const contextKeys = baseKeys.slice(0, baseKeys.length - 1)
       const index = []
 
