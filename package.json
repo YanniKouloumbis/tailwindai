@@ -51,7 +51,7 @@
     "shortid": "^2.2.15",
     "simple-functional-loader": "^1.2.1",
     "tailwindcss": "1.8.5",
-    "twls-wip": "0.0.4",
+    "twls-wip": "0.0.5",
     "vscode-languageserver-textdocument": "^1.0.1",
     "worker-loader": "^3.0.2"
   }

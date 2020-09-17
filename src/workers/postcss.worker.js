@@ -16,6 +16,7 @@ import {
 import { asCompletionItem as asLspCompletionItem } from './as-lsp'
 import CompileWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!./compile.worker.js'
 import { createWorkerQueue } from '../utils/workers'
+import './subworkers'
 
 const compileWorker = createWorkerQueue(CompileWorker)
 
@@ -86,15 +87,20 @@ addEventListener('message', async (event) => {
     return postMessage({ _id: event.data._id, result })
   }
 
-  const result = await compileWorker.emit({
-    css: event.data.css,
-    config: event.data.config,
-  })
+  if (
+    typeof event.data.css !== 'undefined' &&
+    typeof event.data.config !== 'undefined'
+  ) {
+    const result = await compileWorker.emit({
+      css: event.data.css,
+      config: event.data.config,
+    })
 
-  if (!result.error && !result.canceled) {
-    state = result.state
-    postMessage({ _id: event.data._id, css: result.css })
-  } else {
-    postMessage({ ...result, _id: event.data._id })
+    if (!result.error && !result.canceled) {
+      state = result.state
+      postMessage({ _id: event.data._id, css: result.css })
+    } else {
+      postMessage({ ...result, _id: event.data._id })
+    }
   }
 })
