@@ -57,9 +57,9 @@ function Share({ editorRef }) {
             'content-type': 'application/json',
           },
           body: JSON.stringify({
-            html: editorRef.current.documents.html.model.getValue(),
-            css: editorRef.current.documents.css.model.getValue(),
-            config: editorRef.current.documents.config.model.getValue(),
+            html: editorRef.current.getValue('html'),
+            css: editorRef.current.getValue('css'),
+            config: editorRef.current.getValue('config'),
           }),
         })
         .then((res) => res.json())

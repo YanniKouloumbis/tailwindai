@@ -100,12 +100,13 @@ export function createMonacoEditor({
     }
   })
 
+  const documents = { html, css, config }
+
   return {
     editor,
-    documents: {
-      html,
-      css,
-      config,
+    documents,
+    getValue(doc) {
+      return documents[doc].model.getValue()
     },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())

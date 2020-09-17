@@ -40,7 +40,6 @@
     "prettier": "^2.1.1",
     "raw-loader": "^4.0.1",
     "react": "16.13.1",
-    "react-codemirror2": "^7.2.1",
     "react-dom": "16.13.1",
     "react-split-pane": "^0.1.92",
     "react-use": "^15.3.4",

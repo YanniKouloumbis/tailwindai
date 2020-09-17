@@ -1,23 +1,81 @@
-import { useEffect, useState } from 'react'
-import { Controlled as CodeMirror } from 'react-codemirror2'
+import { useRef, useEffect, useLayoutEffect, useState } from 'react'
+import CodeMirror from 'codemirror'
 import { tailwindcssMode } from '../codemirror/tailwindcssMode'
 require('codemirror/mode/htmlmixed/htmlmixed')
 require('codemirror/mode/javascript/javascript')
 
-const modes = {
+CodeMirror.defineMode('tailwindcss', tailwindcssMode)
+
+const docToMode = {
   html: 'htmlmixed',
   css: 'tailwindcss',
   config: 'javascript',
 }
 
-export default function EditorMobile({ initialContent, onChange, activeTab }) {
-  const [content, setContent] = useState({
-    html: initialContent.html,
-    css: initialContent.css,
-    config: initialContent.config,
-  })
+const modeToDoc = {
+  htmlmixed: 'html',
+  tailwindcss: 'css',
+  javascript: 'config',
+}
 
-  const [theme, setTheme] = useState('default')
+export default function EditorMobile2({
+  initialContent,
+  onChange,
+  activeTab,
+  editorRef: inRef,
+}) {
+  const ref = useRef()
+  const cmRef = useRef()
+  const content = useRef(initialContent)
+  const history = useRef({})
+  const [i, setI] = useState(0)
+
+  useEffect(() => {
+    cmRef.current = CodeMirror(ref.current, {
+      value: initialContent[activeTab],
+      mode: docToMode[activeTab],
+      lineNumbers: true,
+      viewportMargin: Infinity,
+      tabSize: 2,
+    })
+    inRef({
+      getValue(doc) {
+        return content.current[doc]
+      },
+    })
+  }, [])
+
+  useEffect(() => {
+    function handleChange() {
+      content.current[activeTab] = cmRef.current.getValue()
+      onChange(activeTab, content.current)
+    }
+    cmRef.current.on('change', handleChange)
+    return () => {
+      cmRef.current.off('change', handleChange)
+    }
+  }, [activeTab, onChange])
+
+  useEffect(() => {
+    history.current[
+      modeToDoc[cmRef.current.getOption('mode')]
+    ] = cmRef.current.getHistory()
+
+    cmRef.current.setValue(content.current[activeTab])
+    cmRef.current.setOption('mode', docToMode[activeTab])
+    if (history.current[activeTab]) {
+      cmRef.current.setHistory(history.current[activeTab])
+    } else {
+      cmRef.current.clearHistory()
+    }
+    setI((i) => i + 1)
+  }, [activeTab])
+
+  useLayoutEffect(() => {
+    if (!cmRef.current) return
+    cmRef.current.refresh()
+    cmRef.current.focus()
+  }, [i])
 
   useEffect(() => {
     const target = document.querySelector('html')
@@ -29,9 +87,9 @@ export default function EditorMobile({ initialContent, onChange, activeTab }) {
           mutation.attributeName === 'class'
         ) {
           if (target.classList.contains('dark')) {
-            setTheme('material')
+            cmRef.current.setOption('theme', 'material')
           } else {
-            setTheme('default')
+            cmRef.current.setOption('theme', 'default')
           }
         }
       }
@@ -46,24 +104,7 @@ export default function EditorMobile({ initialContent, onChange, activeTab }) {
 
   return (
     <div className="relative flex-auto">
-      <CodeMirror
-        className="absolute inset-0 w-full h-full"
-        value={content[activeTab]}
-        options={{
-          mode: modes[activeTab],
-          theme,
-          lineNumbers: true,
-          viewportMargin: Infinity,
-          tabSize: 2,
-        }}
-        onBeforeChange={(_editor, _data, value) => {
-          setContent({ ...content, [activeTab]: value })
-        }}
-        onChange={() => {
-          onChange(activeTab, content)
-        }}
-        defineMode={{ name: 'tailwindcss', fn: tailwindcssMode }}
-      />
+      <div ref={ref} className="absolute inset-0 w-full h-full" />
     </div>
   )
 }
