@@ -17,6 +17,7 @@ import { validateJavaScript } from '../utils/validateJavaScript'
 import { useDebouncedState } from '../hooks/useDebouncedState'
 import { Preview } from '../components/Preview'
 import isMobile from 'is-mobile'
+import Error from 'next/error'
 
 const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
 const EditorMobile = dynamic(import('../components/EditorMobile'), {
@@ -105,7 +106,14 @@ function Share({ editorRef }) {
   )
 }
 
-export default function App({ initialContent = defaultContent }) {
+export default function App({ initialContent, errorCode }) {
+  if (errorCode) {
+    return <Error statusCode={errorCode} />
+  }
+  return <Pen initialContent={initialContent} />
+}
+
+function Pen({ initialContent }) {
   const previewRef = useRef()
   const worker = useRef()
   const [size, setSize] = useState({ percentage: 0.5, layout: 'vertical' })
@@ -523,4 +531,78 @@ export default function App({ initialContent = defaultContent }) {
       </main>
     </>
   )
+}
+
+export async function getServerSideProps({ params, res }) {
+  if (!params.slug) {
+    res.setHeader(
+      'cache-control',
+      'public, max-age=0, must-revalidate, s-maxage=31536000'
+    )
+    return {
+      props: {
+        initialContent: defaultContent,
+      },
+    }
+  }
+
+  if (params.slug.length > 1) {
+    return {
+      props: {
+        errorCode: 404,
+      },
+    }
+  }
+
+  if (params.slug.length === 1) {
+    const AWS = require('aws-sdk')
+
+    const db = new AWS.DynamoDB.DocumentClient({
+      credentials: {
+        accessKeyId: process.env.TW_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.TW_AWS_SECRET_ACCESS_KEY,
+      },
+      region: process.env.TW_AWS_DEFAULT_REGION,
+    })
+
+    function get(ID) {
+      return new Promise((resolve, reject) => {
+        const start = +new Date()
+        db.get(
+          { TableName: process.env.TW_TABLE_NAME, Key: { ID } },
+          (err, data) => {
+            if (err) reject(err)
+            console.log((+new Date() - start) / 1000)
+            resolve(data)
+          }
+        )
+      })
+    }
+
+    try {
+      const { Item: initialContent } = await get(params.slug[0])
+
+      if (initialContent) {
+        res.setHeader(
+          'cache-control',
+          'public, max-age=0, must-revalidate, s-maxage=31536000'
+        )
+      }
+
+      return {
+        props: initialContent
+          ? { initialContent }
+          : {
+              errorCode: 404,
+            },
+      }
+    } catch (error) {
+      console.error(error)
+      return {
+        props: {
+          errorCode: 500,
+        },
+      }
+    }
+  }
 }
