@@ -49,7 +49,7 @@
     "rollup-plugin-terser": "^7.0.1",
     "shortid": "^2.2.15",
     "simple-functional-loader": "^1.2.1",
-    "tailwindcss": "1.8.5",
+    "tailwindcss": "1.8.10",
     "twls-wip": "0.0.5",
     "vscode-languageserver-textdocument": "^1.0.1",
     "worker-loader": "^3.0.2"
