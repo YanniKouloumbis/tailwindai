@@ -67,16 +67,34 @@ addEventListener('message', async (event) => {
         after
     )
   } catch (error) {
-    const match = error.stack.match(/:([0-9]+):([0-9]+)/)
+    let line
+
+    if (typeof error.line !== 'undefined') {
+      line = error.line - 1
+    } else {
+      const lines = error.stack.split('\n')
+      for (let i = 0; i < lines.length; i++) {
+        const re = /:([0-9]+):([0-9]+)/g
+        const matches = []
+        let match
+        while ((match = re.exec(lines[i])) !== null) {
+          matches.push(match)
+        }
+        if (matches.length > 0) {
+          line = parseInt(matches[matches.length - 1][1], 10)
+          break
+        }
+      }
+    }
 
     return respond({
       error: {
         message: error.message,
         file: 'Config',
         line:
-          match === null
+          typeof line === 'undefined'
             ? undefined
-            : parseInt(match[1], 10) - before.split('\n').length,
+            : line - before.split('\n').length,
       },
     })
   }
