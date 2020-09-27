@@ -4,6 +4,7 @@
 
 #__next {
   width: 100%;
+  flex: none;
   display: flex;
   flex-direction: column;
 }
