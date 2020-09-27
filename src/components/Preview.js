@@ -28,8 +28,8 @@ export const Preview = forwardRef(
         const rect = containerRef.current.getBoundingClientRect()
         setSize({
           visible: !isInitial,
-          width: rect.width,
-          height: rect.height,
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
         })
         timeout.current = window.setTimeout(() => {
           setSize((size) => ({ ...size, visible: false }))
