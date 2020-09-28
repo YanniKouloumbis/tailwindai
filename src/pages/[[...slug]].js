@@ -419,26 +419,31 @@ function Pen({ initialContent }) {
           </HeaderButton>
           <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
           <HeaderButton
-            fillOnly={true}
+            label={
+              <>
+                <span className="dark:hidden">Switch to dark theme</span>
+                <span className="hidden dark:inline">
+                  Switch to light theme
+                </span>
+              </>
+            }
             onClick={toggleTheme}
-            className="dark:hidden"
-          >
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M9.353 2.939a1 1 0 01.22 1.08 8 8 0 0010.408 10.408 1 1 0 011.301 1.3A10.003 10.003 0 0112 22C6.477 22 2 17.523 2 12c0-4.207 2.598-7.805 6.273-9.282a1 1 0 011.08.22z"
-            />
-          </HeaderButton>
-          <HeaderButton
             fillOnly={true}
-            onClick={toggleTheme}
-            className="hidden dark:block"
           >
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M12 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zM4.929 4.929a1 1 0 011.414 0l.707.707A1 1 0 115.636 7.05l-.707-.707a1 1 0 010-1.414zm14.142 0a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM7 12a5 5 0 1110 0 5 5 0 01-10 0zm-5 0a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zm-2.05 4.95a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zm-11.314 0a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707zM12 19a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z"
-            />
+            <g className="dark:opacity-0">
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M9.353 2.939a1 1 0 01.22 1.08 8 8 0 0010.408 10.408 1 1 0 011.301 1.3A10.003 10.003 0 0112 22C6.477 22 2 17.523 2 12c0-4.207 2.598-7.805 6.273-9.282a1 1 0 011.08.22z"
+              />
+            </g>
+            <g className="opacity-0 dark:opacity-100">
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M12 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zM4.929 4.929a1 1 0 011.414 0l.707.707A1 1 0 115.636 7.05l-.707-.707a1 1 0 010-1.414zm14.142 0a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM7 12a5 5 0 1110 0 5 5 0 01-10 0zm-5 0a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zm-2.05 4.95a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zm-11.314 0a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707zM12 19a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z"
+              />
+            </g>
           </HeaderButton>
         </div>
       </header>

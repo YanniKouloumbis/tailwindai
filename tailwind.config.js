@@ -297,6 +297,7 @@ module.exports = {
       ...variants('opacity'),
       'group-hover',
       'group-focus',
+      'dark',
     ],
     fill: ({ variants }) => [
       ...variants('fill'),
