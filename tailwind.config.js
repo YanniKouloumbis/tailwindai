@@ -28,6 +28,7 @@ module.exports = {
       cursor: {
         'ew-resize': 'ew-resize',
         'ns-resize': 'ns-resize',
+        'nesw-resize': 'nesw-resize',
         'nwse-resize': 'nwse-resize',
       },
     },

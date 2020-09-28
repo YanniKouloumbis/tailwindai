@@ -107,6 +107,14 @@ export const Preview = forwardRef(
                 height
               )
             )
+          } else if (resizing.handle === 'bottom-left') {
+            document.body.classList.add('cursor-nesw-resize')
+            setResponsiveSize(() =>
+              constrainSize(
+                resizing.startWidth - (e.clientX - resizing.startX) * 2,
+                resizing.startHeight + (e.clientY - resizing.startY)
+              )
+            )
           } else if (resizing.handle === 'bottom-right') {
             document.body.classList.add('cursor-nwse-resize')
             setResponsiveSize(() =>
@@ -124,6 +132,8 @@ export const Preview = forwardRef(
             document.body.classList.remove('cursor-ew-resize')
           } else if (resizing.handle === 'right') {
             document.body.classList.remove('cursor-ew-resize')
+          } else if (resizing.handle === 'bottom-left') {
+            document.body.classList.remove('cursor-nesw-resize')
           } else if (resizing.handle === 'bottom-right') {
             document.body.classList.remove('cursor-nwse-resize')
           }
@@ -166,7 +176,7 @@ export const Preview = forwardRef(
         >
           {responsiveDesignMode && (
             <div
-              className="cursor-ew-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-r-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+              className="cursor-ew-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-r-0 border-b-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
               onMouseDown={(e) =>
                 setResizing({
                   handle: 'left',
@@ -288,7 +298,30 @@ export const Preview = forwardRef(
                 </svg>
               </div>
               <div
-                className="col-start-2 cursor-ns-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-t-0 border-r-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                className="cursor-nesw-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-t-0 border-r-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                onMouseDown={(e) =>
+                  setResizing({
+                    handle: 'bottom-left',
+                    startWidth: responsiveSize.width,
+                    startHeight: responsiveSize.height,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                  })
+                }
+              >
+                <svg
+                  viewBox="0 0 16 6"
+                  width={16}
+                  height={6}
+                  fill="none"
+                  stroke="currentColor"
+                  className="transform translate-x-0.5 -translate-y-0.5 rotate-45"
+                >
+                  <path d="M 0 0.5 H 16 M 0 5.5 H 16" />
+                </svg>
+              </div>
+              <div
+                className="cursor-ns-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center"
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom',
