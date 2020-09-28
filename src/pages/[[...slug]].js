@@ -18,6 +18,7 @@ import { useDebouncedState } from '../hooks/useDebouncedState'
 import { Preview } from '../components/Preview'
 import isMobile from 'is-mobile'
 import Error from 'next/error'
+import clsx from 'clsx'
 
 const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
 const EditorMobile = dynamic(import('../components/EditorMobile'), {
@@ -26,20 +27,24 @@ const EditorMobile = dynamic(import('../components/EditorMobile'), {
 
 const Editor = isMobile() ? EditorMobile : EditorDesktop
 
-const HEADER_HEIGHT = 65
+const HEADER_HEIGHT = 60 - 1
+const TAB_BAR_HEIGHT = 40
+const RESIZER_SIZE = 1
 
 function TabButton({ isActive, onClick, children }) {
   return (
     <button
       type="button"
-      className={`rounded-md text-sm leading-6 font-medium px-2 focus:outline-none transition-colors duration-150 ${
-        isActive
-          ? 'text-black bg-gray-100 focus:bg-gray-200 dark:text-white dark:bg-gray-900'
-          : 'text-gray-500 hover:text-black focus:text-black dark:text-gray-400 dark:hover:text-white'
-      }`}
+      className={clsx(
+        'flex text-xs leading-4 font-medium px-0.5 border-t-2 focus:outline-none transition-colors duration-150',
+        {
+          'border-turquoise-500 text-gray-900 dark:text-white': isActive,
+          'border-transparent text-gray-500 hover:text-gray-900 focus:text-gray-900 dark:text-gray-400 dark:hover:text-white': !isActive,
+        }
+      )}
       onClick={onClick}
     >
-      {children}
+      <span className="border-b-2 border-transparent py-2.5">{children}</span>
     </button>
   )
 }
@@ -75,22 +80,27 @@ function Share({ editorRef }) {
   }, [state, editorRef])
 
   return (
-    <div className="flex space-x-5">
+    <div className="flex items-center space-x-4">
       {state !== 'loading' && (
         <button
           type="button"
+          className="grid grid-cols-1 grid-rows-1 rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 hover:bg-gray-50 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:hover:bg-gray-700 dark:focus:bg-gray-700 dark:focus:border-turquoise-500"
           onClick={() => {
             setState({ state: 'loading' })
           }}
         >
-          Share
+          {/* TODO */}
+          <span className="col-start-1 row-start-1">Share</span>
+          <span className="col-start-1 row-start-1 invisible text-teal-600">
+            Copied!
+          </span>
         </button>
       )}
       {state === 'loading' && <p>Loading...</p>}
       {state === 'complete' && (
         <button
           type="button"
-          className="underline"
+          className="group flex items-center space-x-1.5 text-sm leading-5 font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           onClick={() => {
             navigator.clipboard
               .writeText(window.location.origin + '/' + ID)
@@ -99,7 +109,20 @@ function Share({ editorRef }) {
               })
           }}
         >
-          {ID}
+          <span>
+            {window.location.origin}/{ID}
+          </span>
+          <svg
+            width="20"
+            height="20"
+            className="fill-current opacity-0 group-hover:opacity-100 group-focus:opacity-100"
+          >
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M10 4.5H6A1.5 1.5 0 004.5 6v4A1.5 1.5 0 006 11.5h1V10a3 3 0 013-3h1.5V6A1.5 1.5 0 0010 4.5zM13 7V6a3 3 0 00-3-3H6a3 3 0 00-3 3v4a3 3 0 003 3h1v1a3 3 0 003 3h4a3 3 0 003-3v-4a3 3 0 00-3-3h-1zm-3 1.5h4a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 018.5 14v-4A1.5 1.5 0 0110 8.5z"
+            />
+          </svg>
         </button>
       )}
     </div>
@@ -111,6 +134,51 @@ export default function App({ initialContent, errorCode }) {
     return <Error statusCode={errorCode} />
   }
   return <Pen initialContent={initialContent} />
+}
+
+function HeaderButton({
+  isActive = false,
+  label,
+  onClick,
+  fillOnly = false,
+  className,
+  children,
+}) {
+  return (
+    <button
+      type="button"
+      className={clsx(
+        className,
+        'group rounded-md border border-transparent focus:bg-gray-100 focus:outline-none dark:focus:bg-black dark:focus:border-gray-800',
+        {
+          'text-gray-700 dark:text-white': isActive,
+          'text-gray-400': !isActive,
+        }
+      )}
+      onClick={onClick}
+    >
+      <span className="sr-only">{label}</span>
+      <svg
+        width="34"
+        height="34"
+        viewBox="-5 -5 34 34"
+        strokeWidth={fillOnly ? 0 : 1.5}
+        className={clsx(
+          fillOnly
+            ? {
+                'fill-gray-400 group-hover:fill-gray-500 group-focus:fill-gray-500 dark:fill-gray-500 dark:group-hover:fill-gray-400 dark:group-focus:fill-gray-400': !isActive,
+                'fill-turquoise-500 group-hover:fill-turquoise-600 dark:fill-turquoise-400 dark:group-hover:fill-turquoise-300 dark:group-focus:fill-turquoise-300': isActive,
+              }
+            : {
+                'fill-gray-300 stroke-gray-400 group-hover:fill-gray-400 group-hover:stroke-gray-500 group-focus:fill-gray-400 group-focus:stroke-gray-500 dark:fill-gray-700 dark:stroke-gray-500 dark:group-hover:fill-gray-600 dark:group-hover:stroke-gray-400 dark:group-focus:fill-gray-600 dark:group-focus:stroke-gray-400': !isActive,
+                'fill-turquoise-100 stroke-turquoise-500 group-hover:fill-turquoise-200 group-hover:stroke-turquoise-600 dark:fill-turquoise-800 dark:stroke-turquoise-400 dark:group-hover:fill-turquoise-700 dark:group-hover:stroke-turquoise-300 dark:group-focus:fill-turquoise-700 dark:group-focus:stroke-turquoise-300': isActive,
+              }
+        )}
+      >
+        {children}
+      </svg>
+    </button>
+  )
 }
 
 function Pen({ initialContent }) {
@@ -185,12 +253,15 @@ function Pen({ initialContent }) {
       setSize((size) => {
         const windowSize =
           size.layout === 'horizontal'
-            ? window.innerHeight - HEADER_HEIGHT
+            ? window.innerHeight - HEADER_HEIGHT - TAB_BAR_HEIGHT
             : window.innerWidth
 
         if (isMd && size.layout !== 'preview') {
-          const min = 321
-          const max = windowSize - min
+          const min = size.layout === 'vertical' ? 320 : 320 + TAB_BAR_HEIGHT
+          const max =
+            size.layout === 'vertical'
+              ? windowSize - min - RESIZER_SIZE
+              : windowSize - 320 + TAB_BAR_HEIGHT - RESIZER_SIZE
 
           return {
             ...size,
@@ -281,153 +352,101 @@ function Pen({ initialContent }) {
 
   return (
     <>
-      <header className="relative z-10 flex-none py-5 px-5 sm:px-8 shadow dark:shadow-white flex md:grid grid-cols-3-balanced items-center">
+      <header className="relative z-10 flex-none py-3 px-5 sm:px-6 flex items-center">
         <div className="flex items-center space-x-5">
           <Logo />
           <Share editorRef={editorRef} />
         </div>
-        <div className="hidden md:flex space-x-5">
-          <button
-            type="button"
-            className={
-              size.layout === 'vertical'
-                ? 'text-gray-700 dark:text-white'
-                : 'text-gray-400'
-            }
+        <div className="hidden md:flex items-center space-x-3.5 ml-auto">
+          <HeaderButton
+            isActive={size.layout === 'vertical'}
+            label="Switch to vertical split layout"
             onClick={() => setSize((size) => ({ ...size, layout: 'vertical' }))}
           >
-            <span className="sr-only">Switch to vertical split layout</span>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
+            <rect
+              x="2.75"
+              y="4.75"
+              width="18.5"
+              height="14.5"
+              rx="1.25"
               fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <rect x={2.75} y={4.75} width={18.5} height={14.5} rx={1.25} />
-              <path
-                d="M2.75 6C2.75 5.30964 3.30964 4.75 4 4.75H11.25V19.25H4C3.30964 19.25 2.75 18.6904 2.75 18V6Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className={
-              size.layout === 'horizontal'
-                ? 'text-gray-700 dark:text-white'
-                : 'text-gray-400'
-            }
+            />
+            <path d="M2.75 6c0-.69.56-1.25 1.25-1.25h7.25v14.5H4c-.69 0-1.25-.56-1.25-1.25V6z" />
+          </HeaderButton>
+          <HeaderButton
+            isActive={size.layout === 'horizontal'}
+            label="Switch to horizontal split layout"
             onClick={() =>
               setSize((size) => ({ ...size, layout: 'horizontal' }))
             }
           >
-            <span className="sr-only">Switch to horizontal split layout</span>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
+            <rect
+              x="2.75"
+              y="4.75"
+              width="18.5"
+              height="14.5"
+              rx="1.25"
               fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <rect
-                x="21.25"
-                y="19.25"
-                width="18.5"
-                height="14.5"
-                rx="1.25"
-                transform="rotate(-180 21.25 19.25)"
-              />
-              <path
-                d="M21.25 11.25L2.75 11.25L2.75 6C2.75 5.30964 3.30964 4.75 4 4.75L20 4.75C20.6904 4.75 21.25 5.30964 21.25 6L21.25 11.25Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className={
-              size.layout === 'preview'
-                ? 'text-gray-700 dark:text-white'
-                : 'text-gray-400'
-            }
+            />
+            <path d="M2.75 12.75h18.5V18c0 .69-.56 1.25-1.25 1.25H4c-.69 0-1.25-.56-1.25-1.25v-5.25z" />
+          </HeaderButton>
+          <HeaderButton
+            isActive={size.layout === 'preview'}
+            label="Switch to preview-only layout"
             onClick={() => setSize((size) => ({ ...size, layout: 'preview' }))}
           >
-            <span className="sr-only">Switch to preview-only layout</span>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect
-                x="2.75"
-                y="4.75"
-                width="18.5"
-                height="14.5"
-                rx="1.25"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-            </svg>
-          </button>
-          <div className="w-px h-8 bg-gray-200 dark:bg-gray-600" />
-          <button
-            type="button"
-            className={
-              responsiveDesignMode
-                ? 'text-gray-700 dark:text-white'
-                : 'text-gray-400'
-            }
-            onClick={() => setResponsiveDesignMode(!responsiveDesignMode)}
-          >
-            <span className="sr-only">Toggle responsive design mode</span>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
+            <rect
+              x="2.75"
+              y="4.75"
+              width="18.5"
+              height="14.5"
+              rx="1.25"
               fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <rect x="6.75" y="2.75" width="14.5" height="18.5" rx="1.25" />
-              <rect
-                x="2.75"
-                y="8.75"
-                width="8.5"
-                height="12.5"
-                rx="1.25"
-                className="fill-white dark:fill-gray-800"
-              />
-            </svg>
-          </button>
-        </div>
-        <div className="flex justify-end ml-auto">
-          <button type="button" className="text-gray-400" onClick={toggleTheme}>
-            <span className="sr-only">Toggle theme</span>
-            <svg
-              className="w-5 h-5 block dark:hidden"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <svg
-              className="w-5 h-5 hidden dark:block"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-            </svg>
-          </button>
+            />
+          </HeaderButton>
+          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+          <HeaderButton
+            isActive={responsiveDesignMode}
+            label="Toggle responsive design mode"
+            onClick={() => setResponsiveDesignMode(!responsiveDesignMode)}
+            fillOnly={true}
+          >
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M6 8H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v4zm14-4.5H8a.5.5 0 00-.5.5v4H10a2 2 0 012 2v10c0 .173-.022.34-.063.5H20a.5.5 0 00.5-.5V4a.5.5 0 00-.5-.5zm-10 17a.5.5 0 00.5-.5V10a.5.5 0 00-.5-.5H4a.5.5 0 00-.5.5v10a.5.5 0 00.5.5h6z"
+            />
+          </HeaderButton>
+          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+          <HeaderButton
+            fillOnly={true}
+            onClick={toggleTheme}
+            className="dark:hidden"
+          >
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M9.353 2.939a1 1 0 01.22 1.08 8 8 0 0010.408 10.408 1 1 0 011.301 1.3A10.003 10.003 0 0112 22C6.477 22 2 17.523 2 12c0-4.207 2.598-7.805 6.273-9.282a1 1 0 011.08.22z"
+            />
+          </HeaderButton>
+          <HeaderButton
+            fillOnly={true}
+            onClick={toggleTheme}
+            className="hidden dark:block"
+          >
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M12 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zM4.929 4.929a1 1 0 011.414 0l.707.707A1 1 0 115.636 7.05l-.707-.707a1 1 0 010-1.414zm14.142 0a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM7 12a5 5 0 1110 0 5 5 0 01-10 0zm-5 0a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zm-2.05 4.95a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zm-11.314 0a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707zM12 19a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z"
+            />
+          </HeaderButton>
         </div>
       </header>
-      <main className="flex-auto relative">
+      <main className="flex-auto relative border-t border-gray-200 dark:border-gray-800">
         {initialContent && typeof size.current !== 'undefined' ? (
           <>
             {(!isMd || size.layout !== 'preview') && (
-              <div className="flex flex-none px-5 sm:px-8 py-2 space-x-3 absolute z-10 top-0 left-0">
+              <div className="flex flex-none px-5 sm:px-6 space-x-5 absolute z-10 top-0 left-0 -mt-px">
                 <TabButton
                   isActive={
                     (isMd || activePane === 'editor') && activeTab === 'html'
@@ -479,13 +498,18 @@ function Pen({ initialContent }) {
               maxSize={size.max}
               size={size.current}
               onChange={updateCurrentSize}
-              paneStyle={{ overflow: 'hidden' }}
+              paneStyle={{ overflow: 'hidden', marginTop: -1 }}
               pane1Style={{ display: 'flex', flexDirection: 'column' }}
               onDragStarted={() => setResizing(true)}
               onDragFinished={() => setResizing(false)}
               allowResize={isMd && size.layout !== 'preview'}
+              resizerClassName={
+                isMd && size.layout !== 'preview'
+                  ? 'Resizer'
+                  : 'Resizer-collapsed'
+              }
             >
-              <div className="border-t border-gray-200 dark:border-gray-600 mt-10 flex-auto flex">
+              <div className="border-t border-gray-200 dark:border-gray-800 mt-10 flex-auto flex">
                 {renderEditor && (
                   <Editor
                     editorRef={(ref) => (editorRef.current = ref)}

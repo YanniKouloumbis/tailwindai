@@ -50,11 +50,7 @@ body.cursor-nwse-resize * {
 }
 
 .dark .Resizer {
-  background-color: theme('colors.gray.600');
-}
-
-.Resizer:hover {
-  transition: all 2s ease;
+  background-color: theme('colors.gray.800');
 }
 
 .Resizer.horizontal {
@@ -66,11 +62,6 @@ body.cursor-nwse-resize * {
   width: 100%;
 }
 
-.Resizer.horizontal:hover {
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-}
-
 .Resizer.vertical {
   width: 11px;
   margin: 0 -5px;
@@ -79,16 +70,13 @@ body.cursor-nwse-resize * {
   cursor: col-resize;
 }
 
-.Resizer.vertical:hover {
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
+.Resizer.Resizer-collapsed {
+  border: 0;
+  width: 0;
+  height: 0;
 }
 
 .Resizer.disabled {
-  cursor: not-allowed;
-}
-
-.Resizer.disabled:hover {
-  border-color: transparent;
+  pointer-events: none;
 }
 /* purgecss end ignore */

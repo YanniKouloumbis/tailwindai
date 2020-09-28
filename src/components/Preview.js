@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useLayoutEffect, useState, useRef } from 'react'
+import clsx from 'clsx'
 
 export const Preview = forwardRef(
   (
@@ -150,17 +151,22 @@ export const Preview = forwardRef(
 
     return (
       <div
-        className={`absolute inset-0 w-full h-full flex flex-col ${className}`}
+        className={clsx(
+          'absolute inset-0 w-full h-full flex flex-col bg-gray-50 dark:bg-black',
+          className
+        )}
         ref={containerRef}
       >
         {responsiveDesignMode && (
-          <div className="flex-none text-center text-xs tabular-nums h-10 flex items-center justify-center">
-            <div>
-              {responsiveSize.width}px{' '}
-              <span className="text-sm font-medium">×</span>{' '}
-              {responsiveSize.height}px ({Math.round(responsiveSize.zoom * 100)}
+          <div className="flex-none text-center text-xs leading-4 tabular-nums whitespace-pre py-3 text-gray-900 dark:text-gray-400">
+            {responsiveSize.width}
+            {'  '}×{'  '}
+            {responsiveSize.height}
+            {'  '}
+            <span className="text-gray-500">
+              ({Math.round(responsiveSize.zoom * 100)}
               %)
-            </div>
+            </span>
           </div>
         )}
         <div
@@ -176,7 +182,7 @@ export const Preview = forwardRef(
         >
           {responsiveDesignMode && (
             <div
-              className="cursor-ew-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-r-0 border-b-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+              className="cursor-ew-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
               onMouseDown={(e) =>
                 setResizing({
                   handle: 'left',
@@ -197,11 +203,9 @@ export const Preview = forwardRef(
             </div>
           )}
           <div
-            className={`relative ${
-              responsiveDesignMode
-                ? 'border border-gray-200 dark:border-gray-700 overflow-hidden'
-                : ''
-            }`}
+            className={clsx('relative', {
+              'border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden': responsiveDesignMode,
+            })}
             style={
               responsiveDesignMode
                 ? {
@@ -235,9 +239,13 @@ export const Preview = forwardRef(
                   : {}
               }
               onLoad={onLoad}
-              className={`absolute inset-0 w-full h-full bg-white ${
-                resizing ? 'pointer-events-none select-none' : ''
-              } ${iframeClassName}`}
+              className={clsx(
+                iframeClassName,
+                'absolute inset-0 w-full h-full bg-white',
+                {
+                  'pointer-events-none select-none': resizing,
+                }
+              )}
               srcDoc={`
                 <!DOCTYPE html>
                 <html>
@@ -278,7 +286,7 @@ export const Preview = forwardRef(
           {responsiveDesignMode && (
             <>
               <div
-                className="cursor-ew-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-b-0 border-l-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                className="cursor-ew-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'right',
@@ -298,7 +306,7 @@ export const Preview = forwardRef(
                 </svg>
               </div>
               <div
-                className="cursor-nesw-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-t-0 border-r-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                className="cursor-nesw-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom-left',
@@ -321,7 +329,7 @@ export const Preview = forwardRef(
                 </svg>
               </div>
               <div
-                className="cursor-ns-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                className="cursor-ns-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom',
@@ -341,7 +349,7 @@ export const Preview = forwardRef(
                 </svg>
               </div>
               <div
-                className="cursor-nwse-resize select-none bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 border border-t-0 border-l-0 border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                className="cursor-nwse-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom-right',
@@ -367,9 +375,10 @@ export const Preview = forwardRef(
           )}
         </div>
         {!responsiveDesignMode && size.visible && (
-          <div className="absolute top-2 right-2 rounded-md text-xs leading-6 px-2 tabular-nums bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
-            {size.width}px <span className="text-sm font-medium">×</span>{' '}
-            {size.height}px
+          <div className="absolute top-4 right-4 rounded-full h-6 flex items-center text-xs leading-4 whitespace-pre px-3 tabular-nums bg-white border border-gray-300 shadow dark:bg-gray-700 dark:border-transparent">
+            {size.width}
+            {'  '}×{'  '}
+            {size.height}
           </div>
         )}
       </div>

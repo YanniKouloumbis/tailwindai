@@ -13,6 +13,7 @@
     "aws-sdk": "^2.753.0",
     "babel-eslint": "10.x",
     "babel-plugin-preval": "^5.0.0",
+    "clsx": "^1.1.1",
     "codemirror": "^5.57.0",
     "cssnano": "^4.1.10",
     "deasync": "^0.1.20",
