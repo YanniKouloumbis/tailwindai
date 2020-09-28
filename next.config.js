@@ -68,6 +68,20 @@ module.exports = withTM({
       ],
     })
 
+    const files = [
+      {
+        pattern: /normalize/,
+        file: require.resolve('normalize.css'),
+      },
+      {
+        pattern: /preflight/,
+        file: path.resolve(
+          __dirname,
+          'node_modules/tailwindcss/lib/plugins/css/preflight.css'
+        ),
+      },
+    ]
+
     config.module.rules.push({
       test: /tailwindcss\/lib\/plugins\/preflight\.js$/,
       use: [
@@ -75,29 +89,16 @@ module.exports = withTM({
           return source.replace(
             /_fs\.default\.readFileSync\(.*?'utf8'\)/g,
             (m) => {
-              if (/normalize/.test(m)) {
-                return (
-                  '`' +
-                  fs
-                    .readFileSync(require.resolve('normalize.css'), 'utf8')
-                    .replace(/`/g, '\\`') +
-                  '`'
-                )
-              }
-              if (/preflight/.test(m)) {
-                return (
-                  '`' +
-                  fs
-                    .readFileSync(
-                      path.resolve(
-                        __dirname,
-                        'node_modules/tailwindcss/lib/plugins/css/preflight.css'
-                      ),
-                      'utf8'
-                    )
-                    .replace(/`/g, '\\`') +
-                  '`'
-                )
+              for (let i = 0; i < files.length; i++) {
+                if (files[i].pattern.test(m)) {
+                  return (
+                    '`' +
+                    fs
+                      .readFileSync(files[i].file, 'utf8')
+                      .replace(/`/g, '\\`') +
+                    '`'
+                  )
+                }
               }
               return m
             }
