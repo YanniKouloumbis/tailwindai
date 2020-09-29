@@ -353,9 +353,13 @@ function Pen({ initialContent }) {
 
   useEffect(() => {
     if (resizing) {
-      document.body.classList.add('cursor-col-resize')
+      document.body.classList.add(
+        size.layout === 'vertical' ? 'cursor-col-resize' : 'cursor-row-resize'
+      )
     } else {
-      document.body.classList.remove('cursor-col-resize')
+      document.body.classList.remove(
+        size.layout === 'vertical' ? 'cursor-col-resize' : 'cursor-row-resize'
+      )
     }
   }, [resizing])
 
