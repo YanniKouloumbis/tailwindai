@@ -71,7 +71,6 @@ body.cursor-nwse-resize * {
 }
 
 .Resizer.Resizer-collapsed {
-  border: 0;
   width: 0;
   height: 0;
 }
