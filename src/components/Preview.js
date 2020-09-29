@@ -27,10 +27,12 @@ export const Preview = forwardRef(
       const observer = new ResizeObserver(() => {
         window.clearTimeout(timeout.current)
         const rect = containerRef.current.getBoundingClientRect()
+        const width = Math.round(rect.width)
+        const height = Math.round(rect.height)
         setSize({
-          visible: !isInitial,
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
+          visible: !isInitial && width !== 0 && height !== 0,
+          width,
+          height,
         })
         timeout.current = window.setTimeout(() => {
           setSize((size) => ({ ...size, visible: false }))
