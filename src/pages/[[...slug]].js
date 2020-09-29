@@ -49,12 +49,13 @@ function TabButton({ isActive, onClick, children }) {
   )
 }
 
-function Share({ editorRef }) {
+function Share({ editorRef, dirty, onShareStart }) {
   const [{ state, ID }, setState] = useState({ state: 'idle' })
 
   useEffect(() => {
     let current = true
     if (state === 'loading') {
+      if (onShareStart) onShareStart()
       window
         .fetch('/api/share', {
           method: 'POST',
@@ -70,36 +71,79 @@ function Share({ editorRef }) {
         .then((res) => res.json())
         .then((res) => {
           if (current) {
-            setState({ state: 'complete', ID: res.ID })
+            navigator.clipboard
+              .writeText(window.location.origin + '/' + res.ID)
+              .then(() => {
+                if (current) {
+                  setState({ state: 'copied', ID: res.ID })
+                }
+              })
+              .catch(() => {
+                if (current) {
+                  setState({ state: 'disabled', ID: res.ID })
+                }
+              })
           }
         })
+    } else if (state === 'copied') {
+      window.setTimeout(() => {
+        setState(({ state, ID: currentID }) =>
+          state === 'copied' && currentID === ID
+            ? { state: 'disabled', ID: currentID }
+            : { state, ID: currentID }
+        )
+      }, 1500)
     }
     return () => {
       current = false
     }
-  }, [state, editorRef])
+  }, [state, ID, editorRef, onShareStart])
+
+  useEffect(() => {
+    if (dirty) {
+      setState({ state: 'idle' })
+    }
+  }, [dirty])
 
   return (
     <div className="hidden sm:flex items-center space-x-4">
       {state !== 'loading' && (
         <button
           type="button"
-          className="relative rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 hover:bg-gray-50 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:hover:bg-gray-700 dark:focus:bg-gray-700 dark:focus:border-turquoise-500"
+          className={clsx(
+            'relative rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:focus:bg-gray-700 dark:focus:border-turquoise-500',
+            {
+              'opacity-50': state === 'disabled',
+              'cursor-auto': state === 'disabled' || state === 'copied',
+              'hover:bg-gray-50 dark:hover:bg-gray-700':
+                state !== 'disabled' && state !== 'copied',
+            }
+          )}
           onClick={() => {
             setState({ state: 'loading' })
           }}
+          disabled={state === 'copied' || state === 'disabled'}
         >
           {/* TODO */}
-          <span className="absolute inset-0 flex items-center justify-center">
+          <span
+            className={clsx(
+              'absolute inset-0 flex items-center justify-center',
+              { invisible: state === 'copied' }
+            )}
+            aria-hidden={state === 'copied' ? 'true' : 'false'}
+          >
             Share
           </span>
-          <span className="invisible text-teal-600" aria-hidden="true">
+          <span
+            className={clsx('text-teal-600', { invisible: state !== 'copied' })}
+            aria-hidden={state === 'copied' ? 'false' : 'true'}
+          >
             Copied!
           </span>
         </button>
       )}
       {state === 'loading' && <p>Loading...</p>}
-      {state === 'complete' && (
+      {(state === 'copied' || state === 'disabled') && (
         <button
           type="button"
           className="group flex items-center space-x-1.5 text-sm leading-5 font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -192,6 +236,7 @@ function Pen({ initialContent }) {
   const [activeTab, setActiveTab] = useState('html')
   const [activePane, setActivePane] = useState('editor')
   const isMd = useMedia('(min-width: 768px)')
+  const [dirty, setDirty] = useState(true)
   const [renderEditor, setRenderEditor] = useState(false)
   const [
     error,
@@ -235,6 +280,7 @@ function Pen({ initialContent }) {
 
   const onChange = useCallback(
     (document, content) => {
+      setDirty((dirty) => (dirty === false ? true : dirty))
       if (document === 'html') {
         injectHtml(content.html)
       } else {
@@ -348,6 +394,10 @@ function Pen({ initialContent }) {
     }, 0)
   }
 
+  const onShareStart = useCallback(() => {
+    setDirty(false)
+  }, [])
+
   const isDefaultContent =
     initialContent.html === defaultContent.html &&
     initialContent.css === defaultContent.css &&
@@ -358,7 +408,11 @@ function Pen({ initialContent }) {
       <header className="relative z-10 flex-none py-3 px-5 sm:px-6 flex items-center">
         <div className="flex items-center space-x-5">
           <Logo />
-          <Share editorRef={editorRef} />
+          <Share
+            editorRef={editorRef}
+            onShareStart={onShareStart}
+            dirty={dirty}
+          />
         </div>
         <div className="flex items-center space-x-5 ml-auto">
           <div className="hidden md:flex items-center space-x-3.5">
