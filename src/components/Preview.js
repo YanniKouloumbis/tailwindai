@@ -13,7 +13,7 @@ export const Preview = forwardRef(
     ref
   ) => {
     const containerRef = useRef()
-    const [size, setSize] = useState({})
+    const [size, setSize] = useState({ width: 0, height: 0 })
     const [responsiveSize, setResponsiveSize] = useState({
       width: 540,
       height: 720,
@@ -80,7 +80,7 @@ export const Preview = forwardRef(
         }
       }
 
-      if (size.width && size.height) {
+      if (size.width > 50 && size.height > 50) {
         setResponsiveSize(({ width, height }) => constrainSize(width, height))
       }
 
