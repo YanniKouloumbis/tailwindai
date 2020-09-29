@@ -84,14 +84,16 @@ function Share({ editorRef }) {
       {state !== 'loading' && (
         <button
           type="button"
-          className="grid grid-cols-1 grid-rows-1 rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 hover:bg-gray-50 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:hover:bg-gray-700 dark:focus:bg-gray-700 dark:focus:border-turquoise-500"
+          className="relative rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 hover:bg-gray-50 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:hover:bg-gray-700 dark:focus:bg-gray-700 dark:focus:border-turquoise-500"
           onClick={() => {
             setState({ state: 'loading' })
           }}
         >
           {/* TODO */}
-          <span className="col-start-1 row-start-1">Share</span>
-          <span className="col-start-1 row-start-1 invisible text-teal-600">
+          <span className="absolute inset-0 flex items-center justify-center">
+            Share
+          </span>
+          <span className="invisible text-teal-600" aria-hidden="true">
             Copied!
           </span>
         </button>
