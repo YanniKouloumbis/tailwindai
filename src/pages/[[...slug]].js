@@ -80,7 +80,7 @@ function Share({ editorRef }) {
   }, [state, editorRef])
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="hidden sm:flex items-center space-x-4">
       {state !== 'loading' && (
         <button
           type="button"
@@ -112,7 +112,8 @@ function Share({ editorRef }) {
           }}
         >
           <span>
-            {window.location.origin}/{ID}
+            <span className="hidden lg:inline">{window.location.origin}</span>/
+            {ID}
           </span>
           <svg
             width="20"
@@ -359,59 +360,66 @@ function Pen({ initialContent }) {
           <Logo />
           <Share editorRef={editorRef} />
         </div>
-        <div className="hidden md:flex items-center space-x-3.5 ml-auto">
-          <HeaderButton
-            isActive={size.layout === 'vertical'}
-            label="Switch to vertical split layout"
-            onClick={() => setSize((size) => ({ ...size, layout: 'vertical' }))}
-          >
-            <rect
-              x="2.75"
-              y="4.75"
-              width="18.5"
-              height="14.5"
-              rx="1.25"
-              fill="none"
-            />
-            <path d="M2.75 6c0-.69.56-1.25 1.25-1.25h7.25v14.5H4c-.69 0-1.25-.56-1.25-1.25V6z" />
-          </HeaderButton>
-          <HeaderButton
-            isActive={size.layout === 'horizontal'}
-            label="Switch to horizontal split layout"
-            onClick={() =>
-              setSize((size) => ({ ...size, layout: 'horizontal' }))
-            }
-          >
-            <rect
-              x="2.75"
-              y="4.75"
-              width="18.5"
-              height="14.5"
-              rx="1.25"
-              fill="none"
-            />
-            <path d="M2.75 12.75h18.5V18c0 .69-.56 1.25-1.25 1.25H4c-.69 0-1.25-.56-1.25-1.25v-5.25z" />
-          </HeaderButton>
-          <HeaderButton
-            isActive={size.layout === 'preview'}
-            label="Switch to preview-only layout"
-            onClick={() => setSize((size) => ({ ...size, layout: 'preview' }))}
-          >
-            <rect
-              x="2.75"
-              y="4.75"
-              width="18.5"
-              height="14.5"
-              rx="1.25"
-              fill="none"
-            />
-          </HeaderButton>
-          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+        <div className="flex items-center space-x-5 ml-auto">
+          <div className="hidden md:flex items-center space-x-3.5">
+            <HeaderButton
+              isActive={size.layout === 'vertical'}
+              label="Switch to vertical split layout"
+              onClick={() =>
+                setSize((size) => ({ ...size, layout: 'vertical' }))
+              }
+            >
+              <rect
+                x="2.75"
+                y="4.75"
+                width="18.5"
+                height="14.5"
+                rx="1.25"
+                fill="none"
+              />
+              <path d="M2.75 6c0-.69.56-1.25 1.25-1.25h7.25v14.5H4c-.69 0-1.25-.56-1.25-1.25V6z" />
+            </HeaderButton>
+            <HeaderButton
+              isActive={size.layout === 'horizontal'}
+              label="Switch to horizontal split layout"
+              onClick={() =>
+                setSize((size) => ({ ...size, layout: 'horizontal' }))
+              }
+            >
+              <rect
+                x="2.75"
+                y="4.75"
+                width="18.5"
+                height="14.5"
+                rx="1.25"
+                fill="none"
+              />
+              <path d="M2.75 12.75h18.5V18c0 .69-.56 1.25-1.25 1.25H4c-.69 0-1.25-.56-1.25-1.25v-5.25z" />
+            </HeaderButton>
+            <HeaderButton
+              isActive={size.layout === 'preview'}
+              label="Switch to preview-only layout"
+              onClick={() =>
+                setSize((size) => ({ ...size, layout: 'preview' }))
+              }
+            >
+              <rect
+                x="2.75"
+                y="4.75"
+                width="18.5"
+                height="14.5"
+                rx="1.25"
+                fill="none"
+              />
+            </HeaderButton>
+          </div>
+          <div className="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-700" />
           <HeaderButton
             isActive={responsiveDesignMode}
             label="Toggle responsive design mode"
             onClick={() => setResponsiveDesignMode(!responsiveDesignMode)}
             fillOnly={true}
+            className="hidden md:block"
           >
             <path
               fillRule="evenodd"
@@ -419,7 +427,7 @@ function Pen({ initialContent }) {
               d="M6 8H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v4zm14-4.5H8a.5.5 0 00-.5.5v4H10a2 2 0 012 2v10c0 .173-.022.34-.063.5H20a.5.5 0 00.5-.5V4a.5.5 0 00-.5-.5zm-10 17a.5.5 0 00.5-.5V10a.5.5 0 00-.5-.5H4a.5.5 0 00-.5.5v10a.5.5 0 00.5.5h6z"
             />
           </HeaderButton>
-          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+          <div className="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-700" />
           <HeaderButton
             label={
               <>
