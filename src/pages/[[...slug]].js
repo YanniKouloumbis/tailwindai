@@ -310,7 +310,7 @@ function Pen({ initialContent }) {
           const max =
             size.layout === 'vertical'
               ? windowSize - min - RESIZER_SIZE
-              : windowSize - 320 - RESIZER_SIZE - 1
+              : windowSize - 320 - RESIZER_SIZE
 
           return {
             ...size,
