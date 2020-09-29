@@ -255,7 +255,7 @@ function Pen({ initialContent }) {
       setSize((size) => {
         const windowSize =
           size.layout === 'horizontal'
-            ? window.innerHeight - HEADER_HEIGHT - TAB_BAR_HEIGHT
+            ? window.innerHeight - HEADER_HEIGHT
             : window.innerWidth
 
         if (isMd && size.layout !== 'preview') {
@@ -263,7 +263,7 @@ function Pen({ initialContent }) {
           const max =
             size.layout === 'vertical'
               ? windowSize - min - RESIZER_SIZE
-              : windowSize - 320 + TAB_BAR_HEIGHT - RESIZER_SIZE
+              : windowSize - 320 - RESIZER_SIZE - 1
 
           return {
             ...size,
@@ -505,7 +505,7 @@ function Pen({ initialContent }) {
               maxSize={size.max}
               size={size.current}
               onChange={updateCurrentSize}
-              paneStyle={{ overflow: 'hidden', marginTop: -1 }}
+              paneStyle={{ marginTop: -1 }}
               pane1Style={{ display: 'flex', flexDirection: 'column' }}
               onDragStarted={() => setResizing(true)}
               onDragFinished={() => setResizing(false)}
