@@ -1,8 +1,10 @@
 import postcss from 'postcss'
 import tailwindcss from 'tailwindcss'
+import featureFlags from 'tailwindcss/lib/featureFlags'
 import resolveConfig from 'tailwindcss/resolveConfig'
 import extractClasses from './extractClasses'
 import { removeFunctions } from '../utils/object'
+import { getVariants } from '../utils/getVariants'
 const applyComplexClasses = require('tailwindcss/lib/flagged/applyComplexClasses')
 
 // TODO
@@ -157,8 +159,8 @@ addEventListener('message', async (event) => {
     state.classNames = await extractClasses(root)
     state.separator = separator
     state.config = resolveConfig(mod.exports)
+    state.variants = getVariants({ config: state.config, postcss })
     removeFunctions(state.config)
-    state.variants = [] // TODO
     state.version = '1.8.5'
     state.editor = {
       userLanguages: {},
@@ -175,7 +177,7 @@ addEventListener('message', async (event) => {
         },
       },
     }
-    state.featureFlags = { experimental: [], future: [] } // TODO
+    state.featureFlags = featureFlags
     const escapedSeparator = separator.replace(/./g, (m) =>
       /[a-z0-9-_]/i.test(m) ? m : `\\${m}`
     )
