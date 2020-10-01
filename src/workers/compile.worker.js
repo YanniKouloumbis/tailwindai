@@ -86,7 +86,7 @@ addEventListener('message', async (event) => {
       }
       let result
       try {
-        result = await self.importShim('https://cdn.skypack.dev/' + m)
+        result = await self.importShim('https://cdn.skypack.dev/' + m + '?min')
       } catch (error) {
         throw new RequireError("Cannot find module '" + m + "'", line)
       }
