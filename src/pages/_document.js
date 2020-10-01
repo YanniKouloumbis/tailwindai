@@ -10,6 +10,7 @@ export default class Document extends NextDocument {
     return (
       <Html lang="en" className="fixed overflow-hidden h-full">
         <Head>
+          <title>Tailwind Play</title>
           <script
             dangerouslySetInnerHTML={{
               __html: `
