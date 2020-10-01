@@ -19,6 +19,7 @@ import { Preview } from '../components/Preview'
 import isMobile from 'is-mobile'
 import Error from 'next/error'
 import clsx from 'clsx'
+import { ErrorOverlay } from '../components/ErrorOverlay'
 
 const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
 const EditorMobile = dynamic(import('../components/EditorMobile'), {
@@ -611,16 +612,7 @@ function Pen({ initialContent }) {
                     isDefaultContent ? defaultContent.compiledCss : ''
                   }
                 />
-                {error && (
-                  <div className="absolute inset-0 w-full h-full bg-red-500 text-white p-8 text-lg">
-                    <p>
-                      {error.file} error: {error.message}
-                    </p>
-                    {typeof error.line !== 'undefined' ? (
-                      <p>Line: {error.line}</p>
-                    ) : null}
-                  </div>
-                )}
+                <ErrorOverlay error={error} />
               </div>
             </SplitPane>
           </>
