@@ -12,8 +12,8 @@ import {
   asDiagnostics as asMonacoDiagnostics,
   asHover as asMonacoHover,
   asRange as asMonacoRange,
-} from './as-monaco'
-import { asCompletionItem as asLspCompletionItem } from './as-lsp'
+} from '../monaco/lspToMonaco'
+import { asCompletionItem as asLspCompletionItem } from '../monaco/monacoToLsp'
 import CompileWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!./compile.worker.js'
 import { createWorkerQueue } from '../utils/workers'
 import './subworkers'
