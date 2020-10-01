@@ -11,9 +11,27 @@ applyComplexClasses.default = (...args) => {
   let fn = _applyComplexClasses(...args)
   return (css) => {
     css.walkRules((rule) => {
-      rule.selector = rule.selector.replace(/__TWSEP__(.*?)__TWSEP__/g, '$1')
+      const newSelector = rule.selector.replace(
+        /__TWSEP__(.*?)__TWSEP__/g,
+        '$1'
+      )
+      if (newSelector !== rule.selector) {
+        rule.before(
+          postcss.comment({ text: '__ORIGINAL_SELECTOR__:' + rule.selector })
+        )
+        rule.selector = newSelector
+      }
     })
     fn(css)
+    css.walkComments((comment) => {
+      if (comment.text.startsWith('__ORIGINAL_SELECTOR__:')) {
+        comment.next().selector = comment.text.replace(
+          /^__ORIGINAL_SELECTOR__:/,
+          ''
+        )
+        comment.remove()
+      }
+    })
   }
 }
 
