@@ -29,7 +29,6 @@ export function getVariants({ config, postcss }) {
       },
     })
   })
-  console.log(variants)
 
   return variants
 }
