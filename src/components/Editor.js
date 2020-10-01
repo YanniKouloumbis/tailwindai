@@ -71,7 +71,7 @@ export default function Editor({
     const currentState = editor.saveViewState()
     const currentModel = editor.getModel()
 
-    if (currentModel === documents.html.model) {
+    if (currentModel === documents.html.getModel()) {
       editorState.current.html = currentState
     } else if (currentModel === documents.css.getModel()) {
       editorState.current.css = currentState
