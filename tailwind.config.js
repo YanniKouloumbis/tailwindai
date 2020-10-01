@@ -1,3 +1,5 @@
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 module.exports = {
   experimental: {
     uniformColorPalette: true,
@@ -275,6 +277,9 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter var', ...defaultTheme.fontFamily.sans],
+      },
       fill: (theme) => theme('colors'),
       stroke: (theme) => theme('colors'),
       boxShadow: {
