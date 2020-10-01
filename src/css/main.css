@@ -9,16 +9,6 @@
   flex-direction: column;
 }
 
-body.cursor-col-resize,
-body.cursor-col-resize * {
-  cursor: col-resize !important;
-}
-
-body.cursor-row-resize,
-body.cursor-row-resize * {
-  cursor: row-resize !important;
-}
-
 body.cursor-ew-resize,
 body.cursor-ew-resize * {
   cursor: ew-resize !important;
@@ -63,7 +53,7 @@ body.cursor-nwse-resize * {
   margin: -5px 0;
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
-  cursor: row-resize;
+  cursor: ns-resize;
   width: 100%;
 }
 
@@ -72,7 +62,7 @@ body.cursor-nwse-resize * {
   margin: 0 -5px;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  cursor: col-resize;
+  cursor: ew-resize;
 }
 
 .Resizer.Resizer-collapsed {

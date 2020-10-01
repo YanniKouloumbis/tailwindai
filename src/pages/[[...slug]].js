@@ -354,11 +354,11 @@ function Pen({ initialContent }) {
   useEffect(() => {
     if (resizing) {
       document.body.classList.add(
-        size.layout === 'vertical' ? 'cursor-col-resize' : 'cursor-row-resize'
+        size.layout === 'vertical' ? 'cursor-ew-resize' : 'cursor-ns-resize'
       )
     } else {
       document.body.classList.remove(
-        size.layout === 'vertical' ? 'cursor-col-resize' : 'cursor-row-resize'
+        size.layout === 'vertical' ? 'cursor-ew-resize' : 'cursor-ns-resize'
       )
     }
   }, [resizing])
