@@ -8,7 +8,7 @@ export default class Document extends NextDocument {
 
   render() {
     return (
-      <Html lang="en" className="h-full">
+      <Html lang="en" className="fixed overflow-hidden h-full">
         <Head>
           <script
             dangerouslySetInnerHTML={{
@@ -29,7 +29,7 @@ export default class Document extends NextDocument {
             }}
           />
         </Head>
-        <body className="min-h-full flex text-gray-900 dark:text-white bg-white dark:bg-gray-900">
+        <body className="fixed overflow-hidden w-full min-h-full flex text-gray-900 dark:text-white bg-white dark:bg-gray-900">
           <Main />
           <NextScript />
         </body>
