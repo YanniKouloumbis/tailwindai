@@ -73,14 +73,36 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
     })
   )
 
+  const model = monaco.editor.createModel(content || '', 'html', HTML_URI)
+  model.updateOptions({ indentSize: 2, tabSize: 2 })
+  disposables.push(model)
+
   // reset preview when suggest widget is closed
   let timeoutId
   function attachOnDidHide() {
     const editor = getEditor()
     if (editor && editor._contentWidgets['editor.widget.suggestWidget']) {
-      editor._contentWidgets[
-        'editor.widget.suggestWidget'
-      ].widget.onDidHide(() => onChange())
+      let visible = false
+      editor._contentWidgets['editor.widget.suggestWidget'].widget.onDidShow(
+        () => {
+          visible = true
+        }
+      )
+      editor._contentWidgets['editor.widget.suggestWidget'].widget.onDidHide(
+        () => {
+          setTimeout(() => (visible = false), 0)
+          if (editor.getModel() === model) {
+            onChange()
+          }
+        }
+      )
+      disposables.push(
+        editor.onDidChangeModel(({ oldModelUrl }) => {
+          if (visible && oldModelUrl === HTML_URI) {
+            onChange()
+          }
+        })
+      )
     } else {
       timeoutId = window.setTimeout(attachOnDidHide, 10)
     }
@@ -91,10 +113,6 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
       window.clearTimeout(timeoutId)
     },
   })
-
-  const model = monaco.editor.createModel(content || '', 'html', HTML_URI)
-  model.updateOptions({ indentSize: 2, tabSize: 2 })
-  disposables.push(model)
 
   const updateDecorations = debounce(async () => {
     let { result: colors } = await requestResponse(worker.current, {
