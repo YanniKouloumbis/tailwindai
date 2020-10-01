@@ -600,9 +600,7 @@ function Pen({ initialContent }) {
                   responsiveDesignMode={isMd && responsiveDesignMode}
                   iframeClassName={resizing ? 'pointer-events-none' : ''}
                   className={
-                    isMd
-                      ? ''
-                      : 'mt-10 border-t border-gray-200 dark:border-gray-600'
+                    'mt-10 border-t border-gray-200 dark:border-gray-600 md:mt-0 md:border-0'
                   }
                   onLoad={() => {
                     injectHtml(initialContent.html)
