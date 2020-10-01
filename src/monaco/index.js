@@ -45,9 +45,13 @@ export function createMonacoEditor({
   )
   disposables.push(css)
 
-  const config = setupJavaScriptMode(initialContent.config, () => {
-    triggerOnChange('config')
-  })
+  const config = setupJavaScriptMode(
+    initialContent.config,
+    () => {
+      triggerOnChange('config')
+    },
+    () => editor
+  )
   disposables.push(config)
 
   editor = monaco.editor.create(container, {
@@ -67,15 +71,15 @@ export function createMonacoEditor({
         html:
           id === 'html' && typeof newContent !== 'undefined'
             ? newContent
-            : html.model.getValue(),
+            : html.getModel()?.getValue() || initialContent.html,
         css:
           id === 'css' && typeof newContent !== 'undefined'
             ? newContent
-            : css.model.getValue(),
+            : css.getModel()?.getValue() || initialContent.css,
         config:
           id === 'config' && typeof newContent !== 'undefined'
             ? newContent
-            : config.model.getValue(),
+            : config.getModel()?.getValue() || initialContent.config,
       })
     }
   }
@@ -83,9 +87,9 @@ export function createMonacoEditor({
   worker.current.addEventListener('message', (event) => {
     if (event.data.css) {
       const currentModel = editor.getModel()
-      if (currentModel === html.model) {
+      if (currentModel === html.getModel()) {
         html.updateDecorations()
-      } else if (currentModel === css.model) {
+      } else if (currentModel === css.getModel()) {
         css.updateDecorations()
       }
     }
@@ -93,9 +97,9 @@ export function createMonacoEditor({
 
   editor.onDidChangeModel(() => {
     const currentModel = editor.getModel()
-    if (currentModel === html.model) {
+    if (currentModel === html.getModel()) {
       html.updateDecorations()
-    } else if (currentModel === css.model) {
+    } else if (currentModel === css.getModel()) {
       css.updateDecorations()
     }
   })
@@ -106,7 +110,7 @@ export function createMonacoEditor({
     editor,
     documents,
     getValue(doc) {
-      return documents[doc].model.getValue()
+      return documents[doc].getModel().getValue()
     },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())

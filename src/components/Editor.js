@@ -7,7 +7,7 @@ export default function Editor({
   onChange,
   worker,
   activeTab,
-  editorRef: inRef
+  editorRef: inRef,
 }) {
   const editorContainerRef = useRef()
   const editorRef = useRef()
@@ -73,13 +73,13 @@ export default function Editor({
 
     if (currentModel === documents.html.model) {
       editorState.current.html = currentState
-    } else if (currentModel === documents.css.model) {
+    } else if (currentModel === documents.css.getModel()) {
       editorState.current.css = currentState
-    } else if (currentModel === documents.config.model) {
+    } else if (currentModel === documents.config.getModel()) {
       editorState.current.config = currentState
     }
 
-    editor.setModel(documents[activeTab].model)
+    documents[activeTab].activate()
     editor.restoreViewState(editorState.current[activeTab])
     editor.focus()
   }, [activeTab])
