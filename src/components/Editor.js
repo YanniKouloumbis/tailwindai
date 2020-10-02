@@ -52,7 +52,7 @@ export default function Editor({
 
   useEffect(() => {
     function handleThemeChange(theme) {
-      monaco.editor.setTheme(theme === 'dark' ? 'vs-dark' : 'vs')
+      monaco.editor.setTheme(theme === 'dark' ? 'tw-dark' : 'vs')
     }
     const dispose = onDidChangeTheme(handleThemeChange)
     return () => dispose()

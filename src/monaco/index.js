@@ -55,10 +55,19 @@ export function createMonacoEditor({
   )
   disposables.push(config)
 
+  monaco.editor.defineTheme('tw-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [{ background: '18181b' }],
+    colors: {
+      'editor.background': '#18181b',
+    },
+  })
+
   editor = monaco.editor.create(container, {
     fontSize: 14,
     minimap: { enabled: false },
-    theme: getTheme() === 'dark' ? 'vs-dark' : 'vs',
+    theme: getTheme() === 'dark' ? 'tw-dark' : 'vs',
   })
   disposables.push(editor)
 
