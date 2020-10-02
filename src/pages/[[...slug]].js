@@ -109,42 +109,65 @@ function Share({ editorRef, dirty, onShareStart }) {
 
   return (
     <div className="hidden sm:flex items-center space-x-4">
-      {state !== 'loading' && (
-        <button
-          type="button"
-          className={clsx(
-            'relative rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:focus:bg-gray-700 dark:focus:border-turquoise-500',
-            {
-              'opacity-50': state === 'disabled',
-              'cursor-auto': state === 'disabled' || state === 'copied',
-              'hover:bg-gray-50 dark:hover:bg-gray-700':
-                state !== 'disabled' && state !== 'copied',
-            }
-          )}
-          onClick={() => {
-            setState({ state: 'loading' })
-          }}
-          disabled={state === 'copied' || state === 'disabled'}
+      <button
+        type="button"
+        className={clsx(
+          'relative rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:focus:bg-gray-700 dark:focus:border-turquoise-500',
+          {
+            'opacity-50': state === 'disabled',
+            'cursor-auto':
+              state === 'disabled' || state === 'copied' || state === 'loading',
+            'hover:bg-gray-50 dark:hover:bg-gray-700':
+              state !== 'disabled' && state !== 'copied' && state !== 'loading',
+          }
+        )}
+        onClick={() => {
+          setState({ state: 'loading' })
+        }}
+        disabled={
+          state === 'copied' || state === 'disabled' || state === 'loading'
+        }
+      >
+        <span
+          className={clsx('absolute inset-0 flex items-center justify-center', {
+            invisible: state === 'copied' || state === 'loading',
+          })}
+          aria-hidden={
+            state === 'copied' || state === 'loading' ? 'true' : 'false'
+          }
         >
-          {/* TODO */}
-          <span
-            className={clsx(
-              'absolute inset-0 flex items-center justify-center',
-              { invisible: state === 'copied' }
-            )}
-            aria-hidden={state === 'copied' ? 'true' : 'false'}
-          >
-            Share
-          </span>
-          <span
-            className={clsx('text-teal-600', { invisible: state !== 'copied' })}
-            aria-hidden={state === 'copied' ? 'false' : 'true'}
-          >
-            Copied!
-          </span>
-        </button>
-      )}
-      {state === 'loading' && <p>Loading...</p>}
+          Share
+        </span>
+        <span
+          className={clsx('absolute inset-0 flex items-center justify-center', {
+            invisible: state !== 'loading',
+          })}
+          aria-hidden={state !== 'loading' ? 'true' : 'false'}
+        >
+          <span className="sr-only">Loading</span>
+          <svg fill="none" viewBox="0 0 24 24" className="w-4 h-4 animate-spin">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        </span>
+        <span
+          className={clsx('text-teal-600', { invisible: state !== 'copied' })}
+          aria-hidden={state === 'copied' ? 'false' : 'true'}
+        >
+          Copied!
+        </span>
+      </button>
       {(state === 'copied' || state === 'disabled') && (
         <button
           type="button"
@@ -153,7 +176,10 @@ function Share({ editorRef, dirty, onShareStart }) {
             navigator.clipboard
               .writeText(window.location.origin + '/' + ID)
               .then(() => {
-                window.alert('Copied!')
+                setState((currentState) => ({
+                  ...currentState,
+                  state: 'copied',
+                }))
               })
           }}
         >
