@@ -110,7 +110,7 @@ export function createMonacoEditor({
     editor,
     documents,
     getValue(doc) {
-      return documents[doc].getModel().getValue()
+      return documents[doc].getModel()?.getValue() || initialContent[doc]
     },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
