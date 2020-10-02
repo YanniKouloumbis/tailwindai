@@ -28,17 +28,24 @@ export function setupCssMode(content, onChange, worker, getEditor) {
     updateDecorations: () => updateDecorations(),
     activate: () => {
       if (!model) {
-        monaco.languages.setLanguageConfiguration(
-          'tailwindcss',
-          languageConfiguration
-        )
-        monaco.languages.setMonarchTokensProvider('tailwindcss', language)
-
-        setupMode(
-          new LanguageServiceDefaultsImpl(
+        disposables.push(
+          monaco.languages.setLanguageConfiguration(
             'tailwindcss',
-            diagnosticsOptions,
-            modeConfiguration
+            languageConfiguration
+          )
+        )
+
+        disposables.push(
+          monaco.languages.setMonarchTokensProvider('tailwindcss', language)
+        )
+
+        disposables.push(
+          setupMode(
+            new LanguageServiceDefaultsImpl(
+              'tailwindcss',
+              diagnosticsOptions,
+              modeConfiguration
+            )
           )
         )
 
