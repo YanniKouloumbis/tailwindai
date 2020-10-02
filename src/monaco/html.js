@@ -153,8 +153,11 @@ export function setupHtmlMode(content, onChange, worker, getEditor) {
   )
 
   return {
-    model,
+    getModel: () => model,
     updateDecorations,
+    activate: () => {
+      getEditor().setModel(model)
+    },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
     },

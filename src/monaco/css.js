@@ -18,205 +18,219 @@ const CSS_PROXY_URI = 'file:///CSS.proxy'
 
 export function setupCssMode(content, onChange, worker, getEditor) {
   const disposables = []
+  let model
+  let updateDecorations
 
   monaco.languages.register({ id: 'tailwindcss' })
 
-  disposables.push(
-    monaco.languages.onLanguage('tailwindcss', () => {
-      monaco.languages.setLanguageConfiguration(
-        'tailwindcss',
-        languageConfiguration
-      )
-      monaco.languages.setMonarchTokensProvider('tailwindcss', language)
-
-      setupMode(
-        new LanguageServiceDefaultsImpl(
+  return {
+    getModel: () => model,
+    updateDecorations: () => updateDecorations(),
+    activate: () => {
+      if (!model) {
+        monaco.languages.setLanguageConfiguration(
           'tailwindcss',
-          diagnosticsOptions,
-          modeConfiguration
+          languageConfiguration
         )
-      )
-    })
-  )
+        monaco.languages.setMonarchTokensProvider('tailwindcss', language)
 
-  const _provideCompletionItems =
-    CompletionAdapter.prototype.provideCompletionItems
-  CompletionAdapter.prototype.provideCompletionItems = function (
-    originalModel,
-    ...rest
-  ) {
-    if (!this._provideCompletionItems) {
-      this._provideCompletionItems = _provideCompletionItems.bind(this)
-    }
-    return this._provideCompletionItems(
-      originalModel === model ? proxyModel : originalModel,
-      ...rest
-    )
-  }
-  disposables.push({
-    dispose() {
-      CompletionAdapter.prototype.provideCompletionItems = _provideCompletionItems
-    },
-  })
-
-  const _provideDocumentColors =
-    DocumentColorAdapter.prototype.provideDocumentColors
-  DocumentColorAdapter.prototype.provideDocumentColors = function (
-    originalModel,
-    ...rest
-  ) {
-    if (!this._provideDocumentColors) {
-      this._provideDocumentColors = _provideDocumentColors.bind(this)
-    }
-    return this._provideDocumentColors(
-      originalModel === model ? proxyModel : originalModel,
-      ...rest
-    )
-  }
-  disposables.push({
-    dispose() {
-      DocumentColorAdapter.prototype.provideDocumentColors = _provideDocumentColors
-    },
-  })
-
-  const _provideHover = HoverAdapter.prototype.provideHover
-  HoverAdapter.prototype.provideHover = function (originalModel, ...rest) {
-    if (!this._provideHover) {
-      this._provideHover = _provideHover.bind(this)
-    }
-    return this._provideHover(
-      originalModel === model ? proxyModel : originalModel,
-      ...rest
-    )
-  }
-  disposables.push({
-    dispose() {
-      HoverAdapter.prototype.provideHover = _provideHover
-    },
-  })
-
-  DiagnosticsAdapter.prototype._doValidate = function (resource, languageId) {
-    this._worker(resource)
-      .then(function (worker) {
-        return worker.doValidation(
-          resource.toString() === CSS_URI ? CSS_PROXY_URI : resource.toString()
+        setupMode(
+          new LanguageServiceDefaultsImpl(
+            'tailwindcss',
+            diagnosticsOptions,
+            modeConfiguration
+          )
         )
-      })
-      .then(function (diagnostics) {
-        var markers = diagnostics.map(function (d) {
-          return toDiagnostics(resource, d)
-        })
-        var model = monaco.editor.getModel(resource)
-        if (model.getModeId() === languageId) {
-          monaco.editor.setModelMarkers(
-            model,
-            languageId,
-            markers.filter(
-              (marker) =>
-                marker.code !== 'unknownAtRules' ||
-                !/@(tailwind|screen|responsive|variants|layer|___)$/.test(
-                  marker.message
-                )
-            )
+
+        const _provideCompletionItems =
+          CompletionAdapter.prototype.provideCompletionItems
+        CompletionAdapter.prototype.provideCompletionItems = function (
+          originalModel,
+          ...rest
+        ) {
+          if (!this._provideCompletionItems) {
+            this._provideCompletionItems = _provideCompletionItems.bind(this)
+          }
+          return this._provideCompletionItems(
+            originalModel === model ? proxyModel : originalModel,
+            ...rest
           )
         }
-      })
-      .then(undefined, function (err) {
-        console.error(err)
-      })
-  }
-
-  disposables.push(
-    monaco.languages.registerCompletionItemProvider('tailwindcss', {
-      triggerCharacters: [' ', '"', "'", '.'],
-      provideCompletionItems: async function (model, position) {
-        if (!worker.current) return { suggestions: [] }
-        const { result } = await requestResponse(worker.current, {
-          lsp: {
-            type: 'complete',
-            text: model.getValue(),
-            language: 'css',
-            uri: CSS_URI,
-            position,
+        disposables.push({
+          dispose() {
+            CompletionAdapter.prototype.provideCompletionItems = _provideCompletionItems
           },
         })
-        return result ? result : { suggestions: [] }
-      },
-    })
-  )
 
-  disposables.push(
-    monaco.languages.registerHoverProvider('tailwindcss', {
-      provideHover: async (model, position) => {
-        let { result } = await requestResponse(worker.current, {
-          lsp: {
-            type: 'hover',
-            text: model.getValue(),
-            language: 'css',
-            uri: CSS_URI,
-            position,
+        const _provideDocumentColors =
+          DocumentColorAdapter.prototype.provideDocumentColors
+        DocumentColorAdapter.prototype.provideDocumentColors = function (
+          originalModel,
+          ...rest
+        ) {
+          if (!this._provideDocumentColors) {
+            this._provideDocumentColors = _provideDocumentColors.bind(this)
+          }
+          return this._provideDocumentColors(
+            originalModel === model ? proxyModel : originalModel,
+            ...rest
+          )
+        }
+        disposables.push({
+          dispose() {
+            DocumentColorAdapter.prototype.provideDocumentColors = _provideDocumentColors
           },
         })
-        return result
-      },
-    })
-  )
 
-  const model = monaco.editor.createModel(content || '', 'tailwindcss', CSS_URI)
-  model.updateOptions({ indentSize: 2, tabSize: 2 })
-  disposables.push(model)
+        const _provideHover = HoverAdapter.prototype.provideHover
+        HoverAdapter.prototype.provideHover = function (
+          originalModel,
+          ...rest
+        ) {
+          if (!this._provideHover) {
+            this._provideHover = _provideHover.bind(this)
+          }
+          return this._provideHover(
+            originalModel === model ? proxyModel : originalModel,
+            ...rest
+          )
+        }
+        disposables.push({
+          dispose() {
+            HoverAdapter.prototype.provideHover = _provideHover
+          },
+        })
 
-  const proxyModel = monaco.editor.createModel(
-    augmentCss(content || ''),
-    'tailwindcss',
-    CSS_PROXY_URI
-  )
-  proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
-  disposables.push(proxyModel)
+        DiagnosticsAdapter.prototype._doValidate = function (
+          resource,
+          languageId
+        ) {
+          this._worker(resource)
+            .then(function (worker) {
+              return worker.doValidation(
+                resource.toString() === CSS_URI
+                  ? CSS_PROXY_URI
+                  : resource.toString()
+              )
+            })
+            .then(function (diagnostics) {
+              var markers = diagnostics.map(function (d) {
+                return toDiagnostics(resource, d)
+              })
+              var model = monaco.editor.getModel(resource)
+              if (model.getModeId() === languageId) {
+                monaco.editor.setModelMarkers(
+                  model,
+                  languageId,
+                  markers.filter(
+                    (marker) =>
+                      marker.code !== 'unknownAtRules' ||
+                      !/@(tailwind|screen|responsive|variants|layer|___)$/.test(
+                        marker.message
+                      )
+                  )
+                )
+              }
+            })
+            .then(undefined, function (err) {
+              console.error(err)
+            })
+        }
 
-  const updateDecorations = debounce(async () => {
-    let { result: colors } = await requestResponse(worker.current, {
-      lsp: {
-        type: 'documentColors',
-        text: model.getValue(),
-        language: 'css',
-        uri: CSS_URI,
-      },
-    })
-    renderColorDecorators(getEditor(), model, colors)
+        disposables.push(
+          monaco.languages.registerCompletionItemProvider('tailwindcss', {
+            triggerCharacters: [' ', '"', "'", '.'],
+            provideCompletionItems: async function (model, position) {
+              if (!worker.current) return { suggestions: [] }
+              const { result } = await requestResponse(worker.current, {
+                lsp: {
+                  type: 'complete',
+                  text: model.getValue(),
+                  language: 'css',
+                  uri: CSS_URI,
+                  position,
+                },
+              })
+              return result ? result : { suggestions: [] }
+            },
+          })
+        )
 
-    let { result } = await requestResponse(worker.current, {
-      lsp: {
-        type: 'validate',
-        text: model.getValue(),
-        language: 'css',
-        uri: CSS_URI,
-      },
-    })
+        disposables.push(
+          monaco.languages.registerHoverProvider('tailwindcss', {
+            provideHover: async (model, position) => {
+              let { result } = await requestResponse(worker.current, {
+                lsp: {
+                  type: 'hover',
+                  text: model.getValue(),
+                  language: 'css',
+                  uri: CSS_URI,
+                  position,
+                },
+              })
+              return result
+            },
+          })
+        )
 
-    if (model.isDisposed()) return
+        model = monaco.editor.createModel(content || '', 'tailwindcss', CSS_URI)
+        model.updateOptions({ indentSize: 2, tabSize: 2 })
+        disposables.push(model)
 
-    if (result) {
-      monaco.editor.setModelMarkers(model, 'default', supplementMarkers(result))
-    } else {
-      monaco.editor.setModelMarkers(model, 'default', [])
-    }
-  }, 100)
+        const proxyModel = monaco.editor.createModel(
+          augmentCss(content || ''),
+          'tailwindcss',
+          CSS_PROXY_URI
+        )
+        proxyModel.updateOptions({ indentSize: 2, tabSize: 2 })
+        disposables.push(proxyModel)
 
-  updateDecorations()
+        updateDecorations = debounce(async () => {
+          let { result: colors } = await requestResponse(worker.current, {
+            lsp: {
+              type: 'documentColors',
+              text: model.getValue(),
+              language: 'css',
+              uri: CSS_URI,
+            },
+          })
+          renderColorDecorators(getEditor(), model, colors)
 
-  disposables.push(
-    model.onDidChangeContent(async () => {
-      onChange()
-      proxyModel.setValue(augmentCss(model.getValue()))
+          let { result } = await requestResponse(worker.current, {
+            lsp: {
+              type: 'validate',
+              text: model.getValue(),
+              language: 'css',
+              uri: CSS_URI,
+            },
+          })
 
-      updateDecorations()
-    })
-  )
+          if (model.isDisposed()) return
 
-  return {
-    model,
-    updateDecorations,
+          if (result) {
+            monaco.editor.setModelMarkers(
+              model,
+              'default',
+              supplementMarkers(result)
+            )
+          } else {
+            monaco.editor.setModelMarkers(model, 'default', [])
+          }
+        }, 100)
+
+        updateDecorations()
+
+        disposables.push(
+          model.onDidChangeContent(async () => {
+            onChange()
+            proxyModel.setValue(augmentCss(model.getValue()))
+
+            updateDecorations()
+          })
+        )
+      }
+      getEditor().setModel(model)
+    },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
     },
