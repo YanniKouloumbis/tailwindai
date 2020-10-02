@@ -20,6 +20,7 @@ import isMobile from 'is-mobile'
 import Error from 'next/error'
 import clsx from 'clsx'
 import { ErrorOverlay } from '../components/ErrorOverlay'
+import { toggleTheme } from '../utils/theme'
 
 const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
 const EditorMobile = dynamic(import('../components/EditorMobile'), {
@@ -379,25 +380,6 @@ function Pen({ initialContent }) {
       }
     })
   }, [])
-
-  function toggleTheme() {
-    const $html = document.querySelector('html')
-    $html.classList.add('disable-transitions')
-    if ($html.classList.contains('dark')) {
-      $html.classList.remove('dark')
-      try {
-        window.localStorage.setItem('theme', 'light')
-      } catch (_) {}
-    } else {
-      $html.classList.add('dark')
-      try {
-        window.localStorage.setItem('theme', 'dark')
-      } catch (_) {}
-    }
-    window.setTimeout(() => {
-      $html.classList.remove('disable-transitions')
-    }, 0)
-  }
 
   const onShareStart = useCallback(() => {
     setDirty(false)

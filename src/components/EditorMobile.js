@@ -1,6 +1,7 @@
 import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import CodeMirror from 'codemirror'
 import { tailwindcssMode } from '../codemirror/tailwindcssMode'
+import { onDidChangeTheme, getTheme } from '../utils/theme'
 require('codemirror/mode/htmlmixed/htmlmixed')
 require('codemirror/mode/javascript/javascript')
 
@@ -37,6 +38,7 @@ export default function EditorMobile2({
       lineNumbers: true,
       viewportMargin: Infinity,
       tabSize: 2,
+      theme: getTheme() === 'dark' ? 'material' : 'default',
     })
     inRef({
       getValue(doc) {
@@ -78,28 +80,14 @@ export default function EditorMobile2({
   }, [i])
 
   useEffect(() => {
-    const target = document.querySelector('html')
-
-    const observer = new MutationObserver((mutationsList) => {
-      for (let mutation of mutationsList) {
-        if (
-          mutation.type === 'attributes' &&
-          mutation.attributeName === 'class'
-        ) {
-          if (target.classList.contains('dark')) {
-            cmRef.current.setOption('theme', 'material')
-          } else {
-            cmRef.current.setOption('theme', 'default')
-          }
-        }
-      }
-    })
-
-    observer.observe(target, { attributes: true })
-
-    return () => {
-      observer.disconnect()
+    function handleThemeChange(theme) {
+      cmRef.current.setOption(
+        'theme',
+        theme === 'dark' ? 'material' : 'default'
+      )
     }
+    const dispose = onDidChangeTheme(handleThemeChange)
+    return () => dispose()
   }, [])
 
   return (

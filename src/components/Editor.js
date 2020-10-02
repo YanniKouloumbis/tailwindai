@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { createMonacoEditor } from '../monaco'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+import { onDidChangeTheme } from '../utils/theme'
 
 export default function Editor({
   initialContent = {},
@@ -49,9 +50,12 @@ export default function Editor({
 
     observer.observe(target, { attributes: true })
 
-    return () => {
-      observer.disconnect()
+  useEffect(() => {
+    function handleThemeChange(theme) {
+      monaco.editor.setTheme(theme === 'dark' ? 'vs-dark' : 'vs')
     }
+    const dispose = onDidChangeTheme(handleThemeChange)
+    return () => dispose()
   }, [])
 
   // TODO: polyfill?

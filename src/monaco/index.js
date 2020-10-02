@@ -4,6 +4,7 @@ import { createWorkerQueue } from '../utils/workers'
 import { setupHtmlMode } from './html'
 import { setupCssMode } from './css'
 import { setupJavaScriptMode } from './javascript'
+import { getTheme } from '../utils/theme'
 
 export function createMonacoEditor({
   container,
@@ -57,9 +58,7 @@ export function createMonacoEditor({
   editor = monaco.editor.create(container, {
     fontSize: 14,
     minimap: { enabled: false },
-    theme: document.querySelector('html').classList.contains('dark')
-      ? 'vs-dark'
-      : 'vs',
+    theme: getTheme() === 'dark' ? 'vs-dark' : 'vs',
   })
   disposables.push(editor)
 
