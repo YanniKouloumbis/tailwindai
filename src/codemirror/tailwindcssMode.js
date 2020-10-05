@@ -173,7 +173,7 @@ export function tailwindcssMode(config, parserConfig) {
     } else if (type == 'hash') {
       override = 'builtin'
     } else if (type == 'word') {
-      override = 'tag'
+      override = 'qualifier'
     } else if (type == 'variable-definition') {
       return 'maybeprop'
     } else if (type == 'interpolation') {
