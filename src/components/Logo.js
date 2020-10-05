@@ -1,6 +1,6 @@
-export function Logo() {
+export function Logo({ className }) {
   return (
-    <svg width="171" height="21" fill="none">
+    <svg width="171" height="21" fill="none" className={className}>
       <path
         fillRule="evenodd"
         clipRule="evenodd"

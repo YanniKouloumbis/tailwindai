@@ -4,8 +4,9 @@ import clsx from 'clsx'
 export const Preview = forwardRef(
   (
     {
-      initialCss = '',
-      responsiveDesignMode = false,
+      responsiveDesignMode,
+      responsiveSize,
+      onChangeResponsiveSize,
       onLoad,
       className = '',
       iframeClassName = '',
@@ -14,13 +15,48 @@ export const Preview = forwardRef(
   ) => {
     const containerRef = useRef()
     const [size, setSize] = useState({ width: 0, height: 0 })
-    const [responsiveSize, setResponsiveSize] = useState({
-      width: 540,
-      height: 720,
-      zoom: 1,
-    })
     const [resizing, setResizing] = useState()
     const timeout = useRef()
+    const constrainedResponsiveSize = constrainSize(
+      responsiveSize.width,
+      responsiveSize.height
+    )
+
+    function constrainWidth(desiredWidth) {
+      const zoom =
+        desiredWidth > size.width - 34 ? (size.width - 34) / desiredWidth : 1
+      return {
+        width: Math.min(
+          Math.max(50, Math.round(desiredWidth * (1 / zoom))),
+          Math.round((size.width - 34) * (1 / zoom))
+        ),
+        zoom,
+      }
+    }
+
+    function constrainHeight(desiredHeight) {
+      const zoom =
+        desiredHeight > size.height - 17 - 40
+          ? (size.height - 17 - 40) / desiredHeight
+          : 1
+      return {
+        height: Math.min(
+          Math.max(50, Math.round(desiredHeight * (1 / zoom))),
+          Math.round((size.height - 17 - 40) * (1 / zoom))
+        ),
+        zoom,
+      }
+    }
+
+    function constrainSize(desiredWidth, desiredHeight) {
+      const { width, zoom: widthZoom } = constrainWidth(desiredWidth)
+      const { height, zoom: heightZoom } = constrainHeight(desiredHeight)
+      return {
+        width,
+        height,
+        zoom: Math.min(widthZoom, heightZoom),
+      }
+    }
 
     useEffect(() => {
       let isInitial = true
@@ -46,86 +82,42 @@ export const Preview = forwardRef(
     }, [])
 
     useLayoutEffect(() => {
-      function constrainWidth(desiredWidth) {
-        const zoom =
-          desiredWidth > size.width - 34 ? (size.width - 34) / desiredWidth : 1
-        return {
-          width: Math.min(
-            Math.max(50, Math.round(desiredWidth * (1 / zoom))),
-            Math.round((size.width - 34) * (1 / zoom))
-          ),
-          zoom,
-        }
-      }
-      function constrainHeight(desiredHeight) {
-        const zoom =
-          desiredHeight > size.height - 17 - 40
-            ? (size.height - 17 - 40) / desiredHeight
-            : 1
-        return {
-          height: Math.min(
-            Math.max(50, Math.round(desiredHeight * (1 / zoom))),
-            Math.round((size.height - 17 - 40) * (1 / zoom))
-          ),
-          zoom,
-        }
-      }
-      function constrainSize(desiredWidth, desiredHeight) {
-        const { width, zoom: widthZoom } = constrainWidth(desiredWidth)
-        const { height, zoom: heightZoom } = constrainHeight(desiredHeight)
-        return {
-          width,
-          height,
-          zoom: Math.min(widthZoom, heightZoom),
-        }
-      }
-
       if (size.width > 50 && size.height > 50) {
-        setResponsiveSize(({ width, height }) => constrainSize(width, height))
+        onChangeResponsiveSize(({ width, height }) => ({ width, height }))
       }
 
       if (resizing) {
         function onMouseMove(e) {
           if (resizing.handle === 'bottom') {
             document.body.classList.add('cursor-ns-resize')
-            setResponsiveSize(({ width }) =>
-              constrainSize(
-                width,
-                resizing.startHeight + (e.clientY - resizing.startY)
-              )
-            )
+            onChangeResponsiveSize(({ width }) => ({
+              width,
+              height: resizing.startHeight + (e.clientY - resizing.startY),
+            }))
           } else if (resizing.handle === 'left') {
             document.body.classList.add('cursor-ew-resize')
-            setResponsiveSize(({ height }) =>
-              constrainSize(
-                resizing.startWidth - (e.clientX - resizing.startX) * 2,
-                height
-              )
-            )
+            onChangeResponsiveSize(({ height }) => ({
+              width: resizing.startWidth - (e.clientX - resizing.startX) * 2,
+              height,
+            }))
           } else if (resizing.handle === 'right') {
             document.body.classList.add('cursor-ew-resize')
-            setResponsiveSize(({ height }) =>
-              constrainSize(
-                resizing.startWidth + (e.clientX - resizing.startX) * 2,
-                height
-              )
-            )
+            onChangeResponsiveSize(({ height }) => ({
+              width: resizing.startWidth + (e.clientX - resizing.startX) * 2,
+              height,
+            }))
           } else if (resizing.handle === 'bottom-left') {
             document.body.classList.add('cursor-nesw-resize')
-            setResponsiveSize(() =>
-              constrainSize(
-                resizing.startWidth - (e.clientX - resizing.startX) * 2,
-                resizing.startHeight + (e.clientY - resizing.startY)
-              )
-            )
+            onChangeResponsiveSize(() => ({
+              width: resizing.startWidth - (e.clientX - resizing.startX) * 2,
+              height: resizing.startHeight + (e.clientY - resizing.startY),
+            }))
           } else if (resizing.handle === 'bottom-right') {
             document.body.classList.add('cursor-nwse-resize')
-            setResponsiveSize(() =>
-              constrainSize(
-                resizing.startWidth + (e.clientX - resizing.startX) * 2,
-                resizing.startHeight + (e.clientY - resizing.startY)
-              )
-            )
+            onChangeResponsiveSize(() => ({
+              width: resizing.startWidth + (e.clientX - resizing.startX) * 2,
+              height: resizing.startHeight + (e.clientY - resizing.startY),
+            }))
           }
         }
         function onMouseUp() {
@@ -161,12 +153,12 @@ export const Preview = forwardRef(
       >
         {responsiveDesignMode && (
           <div className="flex-none text-center text-xs leading-4 tabular-nums whitespace-pre py-3 text-gray-900 dark:text-gray-400">
-            {responsiveSize.width}
+            {constrainedResponsiveSize.width}
             {'  '}×{'  '}
-            {responsiveSize.height}
+            {constrainedResponsiveSize.height}
             {'  '}
             <span className="text-gray-500">
-              ({Math.round(responsiveSize.zoom * 100)}
+              ({Math.round(constrainedResponsiveSize.zoom * 100)}
               %)
             </span>
           </div>
@@ -188,7 +180,7 @@ export const Preview = forwardRef(
               onMouseDown={(e) =>
                 setResizing({
                   handle: 'left',
-                  startWidth: responsiveSize.width,
+                  startWidth: constrainedResponsiveSize.width,
                   startX: e.clientX,
                 })
               }
@@ -212,10 +204,12 @@ export const Preview = forwardRef(
               responsiveDesignMode
                 ? {
                     width: Math.round(
-                      responsiveSize.width * responsiveSize.zoom
+                      constrainedResponsiveSize.width *
+                        constrainedResponsiveSize.zoom
                     ),
                     height: Math.round(
-                      responsiveSize.height * responsiveSize.zoom
+                      constrainedResponsiveSize.height *
+                        constrainedResponsiveSize.zoom
                     ),
                   }
                 : {}
@@ -227,16 +221,17 @@ export const Preview = forwardRef(
               style={
                 responsiveDesignMode
                   ? {
-                      width: responsiveSize.width,
-                      height: responsiveSize.height,
+                      width: constrainedResponsiveSize.width,
+                      height: constrainedResponsiveSize.height,
                       marginLeft:
-                        (responsiveSize.width -
+                        (constrainedResponsiveSize.width -
                           Math.round(
-                            responsiveSize.width * responsiveSize.zoom
+                            constrainedResponsiveSize.width *
+                              constrainedResponsiveSize.zoom
                           )) /
                         -2,
                       transformOrigin: 'top',
-                      transform: `scale(${responsiveSize.zoom})`,
+                      transform: `scale(${constrainedResponsiveSize.zoom})`,
                     }
                   : {}
               }
@@ -282,7 +277,7 @@ export const Preview = forwardRef(
                         visible = false
                         document.body.style.display = 'none'
                       }
-                      }
+                    }
                     function setHtml(html) {
                       if (typeof html === 'undefined') {
                         document.body.innerHTML = ''
@@ -315,7 +310,7 @@ export const Preview = forwardRef(
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'right',
-                    startWidth: responsiveSize.width,
+                    startWidth: constrainedResponsiveSize.width,
                     startX: e.clientX,
                   })
                 }
@@ -335,8 +330,8 @@ export const Preview = forwardRef(
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom-left',
-                    startWidth: responsiveSize.width,
-                    startHeight: responsiveSize.height,
+                    startWidth: constrainedResponsiveSize.width,
+                    startHeight: constrainedResponsiveSize.height,
                     startX: e.clientX,
                     startY: e.clientY,
                   })
@@ -358,7 +353,7 @@ export const Preview = forwardRef(
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom',
-                    startHeight: responsiveSize.height,
+                    startHeight: constrainedResponsiveSize.height,
                     startY: e.clientY,
                   })
                 }
@@ -378,8 +373,8 @@ export const Preview = forwardRef(
                 onMouseDown={(e) =>
                   setResizing({
                     handle: 'bottom-right',
-                    startWidth: responsiveSize.width,
-                    startHeight: responsiveSize.height,
+                    startWidth: constrainedResponsiveSize.width,
+                    startHeight: constrainedResponsiveSize.height,
                     startX: e.clientX,
                     startY: e.clientY,
                   })
