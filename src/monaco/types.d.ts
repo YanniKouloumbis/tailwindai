@@ -1,3 +1,5 @@
+import * as postcss from 'postcss'
+
 type KeyValuePair<TKey extends keyof any = string, TValue = string> = Record<
   TKey,
   TValue
@@ -182,7 +184,13 @@ type ThemeConfig = Partial<{
   [key: string]: any;
 }>;
 
-type VariantsConfig = string[] | Record<string, string[]>;
+type VariantsAPI = {
+  variants: (path: string) => string[];
+  before: (toInsert: string[], variant?: string, existingPluginVariants?: string[]) => string[];
+  after: (toInsert: string[], variant?: string, existingPluginVariants?: string[]) => string[];
+  without: (toRemove: string[], existingPluginVariants?: string[]) => string[];
+}
+type VariantsConfig = string[] | Record<string, string[] | ((api: VariantsAPI) => string[])>;
 
 type CorePluginsConfig = string[] | Record<string, boolean>;
 
@@ -211,6 +219,7 @@ type PluginAPI = {
     defaultValue: TDefaultValue
   ) => TDefaultValue; // TODO: Or return value at path
   target: (path: ConfigDotNotationPath) => string;
+  prefix: (selector: string) => string;
   /** Ability to add utilities. E.g.: .p-4 */
   addUtilities: (
     utilities: Record<string, KeyValuePair | Record<string, KeyValuePair>>,
@@ -221,6 +230,26 @@ type PluginAPI = {
     components: Record<string, KeyValuePair | Record<string, KeyValuePair>>,
     variantConfig?: VariantConfig
   ) => void;
+  addBase: (
+    base: Record<string, KeyValuePair | Record<string, KeyValuePair>>,
+  ) => void;
+  addVariant: (
+    name: string,
+    generator: (api: {
+      container: postcss.Container,
+      separator: string,
+      modifySelectors: (
+        modifierFunction: (
+          api: {
+            className: string
+            selector: string
+          }
+        ) => void
+      ) => void
+    }) => void
+  ) => void;
+  corePlugins: (path: string) => boolean;
+  postcss: typeof postcss;
 };
 type PluginCreator = (api: PluginAPI) => void;
 type PluginsConfig = PluginCreator[];

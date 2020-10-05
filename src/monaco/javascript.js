@@ -1,6 +1,8 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { SuggestAdapter } from 'monaco-editor/esm/vs/language/typescript/languageFeatures'
 import types from '!!raw-loader!../monaco/types.d.ts'
+import postcssTypes from '!!raw-loader!string-replace-loader?search=\\/\\*.*?\\*\\/&replace=&flags=sg!postcss/lib/postcss.d.ts'
+import sourcemapTypes from '!!raw-loader!postcss/node_modules/source-map/source-map.d.ts'
 import { DiagnosticsAdapter } from 'monaco-editor/esm/vs/language/typescript/languageFeatures'
 
 const CONFIG_URI = 'file:///Config'
@@ -67,6 +69,20 @@ export function setupJavaScriptMode(content, onChange, getEditor) {
             monaco.languages.typescript.ModuleResolutionKind.NodeJs,
           typeRoots: ['node_modules/@types'],
         })
+
+        disposables.push(
+          monaco.languages.typescript.javascriptDefaults.addExtraLib(
+            sourcemapTypes,
+            'file:///node_modules/@types/source-map/index.d.ts'
+          )
+        )
+
+        disposables.push(
+          monaco.languages.typescript.javascriptDefaults.addExtraLib(
+            postcssTypes,
+            'file:///node_modules/@types/postcss/index.d.ts'
+          )
+        )
 
         disposables.push(
           monaco.languages.typescript.javascriptDefaults.addExtraLib(
