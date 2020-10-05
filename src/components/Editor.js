@@ -28,27 +28,16 @@ export default function Editor({
     return () => {
       editorRef.current.dispose()
     }
-  }, [initialContent, onChange, worker])
+  }, [])
 
+  const initial = useRef(true)
   useEffect(() => {
-    const target = document.querySelector('html')
-
-    const observer = new MutationObserver((mutationsList) => {
-      for (let mutation of mutationsList) {
-        if (
-          mutation.type === 'attributes' &&
-          mutation.attributeName === 'class'
-        ) {
-          if (target.classList.contains('dark')) {
-            monaco.editor.setTheme('vs-dark')
-          } else {
-            monaco.editor.setTheme('vs')
-          }
-        }
-      }
-    })
-
-    observer.observe(target, { attributes: true })
+    if (initial.current) {
+      initial.current = false
+      return
+    }
+    editorRef.current.reset(initialContent)
+  }, [initialContent])
 
   useEffect(() => {
     function handleThemeChange(theme) {

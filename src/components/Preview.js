@@ -254,29 +254,52 @@ export const Preview = forwardRef(
                   <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <style id="_style">${initialCss}</style>
+                    <style id="_style"></style>
                     <script>
                     var hasHtml = false
-                    var hasCss = ${initialCss ? 'true' : 'false'}
+                    var hasCss = false
                     var visible = false
                     window.addEventListener('message', (e) => {
+                      if ('clear' in e.data) {
+                        setHtml()
+                        setCss()
+                        checkVisibility()
+                        return
+                      }
                       if ('css' in e.data) {
-                        const style = document.getElementById('_style')
-                        const newStyle = document.createElement('style')
-                        newStyle.id = '_style'
-                        newStyle.innerHTML = e.data.css
-                        style.parentNode.replaceChild(newStyle, style)
-                        hasCss = true
+                        setCss(e.data.css)
                       }
                       if ('html' in e.data) {
-                        document.body.innerHTML = e.data.html
-                        hasHtml = true
+                        setHtml(e.data.html)
                       }
+                      checkVisibility()
+                    })
+                    function checkVisibility() {
                       if (!visible && hasHtml && hasCss) {
                         visible = true
                         document.body.style.display = ''
+                      } else if (visible && (!hasHtml || !hasCss)) {
+                        visible = false
+                        document.body.style.display = 'none'
                       }
-                    })
+                      }
+                    function setHtml(html) {
+                      if (typeof html === 'undefined') {
+                        document.body.innerHTML = ''
+                        hasHtml = false
+                      } else {
+                        document.body.innerHTML = html
+                        hasHtml = true
+                      }
+                    }
+                    function setCss(css) {
+                      const style = document.getElementById('_style')
+                      const newStyle = document.createElement('style')
+                      newStyle.id = '_style'
+                      newStyle.innerHTML = typeof css === 'undefined' ? '' : css
+                      style.parentNode.replaceChild(newStyle, style)
+                      hasCss = typeof css === 'undefined' ? false : true
+                    }
                     </script>
                   </head>
                   <body style="display:none">

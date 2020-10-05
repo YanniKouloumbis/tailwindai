@@ -21,6 +21,7 @@ import Error from 'next/error'
 import clsx from 'clsx'
 import { ErrorOverlay } from '../components/ErrorOverlay'
 import { toggleTheme } from '../utils/theme'
+import Router from 'next/router'
 
 const EditorDesktop = dynamic(import('../components/Editor'), { ssr: false })
 const EditorMobile = dynamic(import('../components/EditorMobile'), {
@@ -51,8 +52,21 @@ function TabButton({ isActive, onClick, children }) {
   )
 }
 
-function Share({ editorRef, dirty, onShareStart }) {
-  const [{ state, ID }, setState] = useState({ state: 'idle' })
+function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
+  const [{ state, ID }, setState] = useState({
+    state: initialID ? 'disabled' : 'idle',
+    ID: initialID,
+  })
+
+  useEffect(() => {
+    if (initialID) {
+      setState((current) =>
+        current.state === 'idle' || current.state === 'disabled'
+          ? { state: 'disabled', ID: initialID }
+          : current
+      )
+    }
+  }, [initialID])
 
   useEffect(() => {
     let current = true
@@ -73,6 +87,7 @@ function Share({ editorRef, dirty, onShareStart }) {
         .then((res) => res.json())
         .then((res) => {
           if (current) {
+            if (onShareComplete) onShareComplete(res.ID)
             navigator.clipboard
               .writeText(window.location.origin + '/' + res.ID)
               .then(() => {
@@ -99,7 +114,7 @@ function Share({ editorRef, dirty, onShareStart }) {
     return () => {
       current = false
     }
-  }, [state, ID, editorRef, onShareStart])
+  }, [state, ID, editorRef, onShareStart, onShareComplete])
 
   useEffect(() => {
     if (dirty) {
@@ -136,7 +151,7 @@ function Share({ editorRef, dirty, onShareStart }) {
             state === 'copied' || state === 'loading' ? 'true' : 'false'
           }
         >
-          Share
+          Save
         </span>
         <span
           className={clsx('absolute inset-0 flex items-center justify-center', {
@@ -184,8 +199,10 @@ function Share({ editorRef, dirty, onShareStart }) {
           }}
         >
           <span>
-            <span className="hidden lg:inline">{window.location.origin}</span>/
-            {ID}
+            <span className="hidden lg:inline">
+              https://play.tailwindcss.com
+            </span>
+            /{ID}
           </span>
           <svg
             width="20"
@@ -264,7 +281,7 @@ function Pen({ initialContent }) {
   const [activeTab, setActiveTab] = useState('html')
   const [activePane, setActivePane] = useState('editor')
   const isMd = useMedia('(min-width: 768px)')
-  const [dirty, setDirty] = useState(true)
+  const [dirty, setDirty] = useState(false)
   const [renderEditor, setRenderEditor] = useState(false)
   const [
     error,
@@ -274,11 +291,25 @@ function Pen({ initialContent }) {
   ] = useDebouncedState(undefined, 1000)
   const editorRef = useRef()
   const [responsiveDesignMode, setResponsiveDesignMode] = useState(false)
+  const [shouldClearOnUpdate, setShouldClearOnUpdate] = useState(true)
 
-  const injectHtml = useCallback((html) => {
-    previewRef.current.contentWindow.postMessage({
-      html,
-    })
+  useEffect(() => {
+    setDirty(false)
+    if (
+      shouldClearOnUpdate &&
+      previewRef.current &&
+      previewRef.current.contentWindow
+    ) {
+      previewRef.current.contentWindow.postMessage({
+        clear: true,
+      })
+      inject({ html: initialContent.html })
+      compileNow(initialContent)
+    }
+  }, [initialContent.ID])
+
+  const inject = useCallback((content) => {
+    previewRef.current.contentWindow.postMessage(content)
   }, [])
 
   async function compileNow(content) {
@@ -310,12 +341,12 @@ function Pen({ initialContent }) {
     (document, content) => {
       setDirty((dirty) => (dirty === false ? true : dirty))
       if (document === 'html') {
-        injectHtml(content.html)
+        inject({ html: content.html })
       } else {
         compile({ css: content.css, config: content.config })
       }
     },
-    [injectHtml, compile]
+    [inject, compile]
   )
 
   useEffect(() => {
@@ -411,6 +442,13 @@ function Pen({ initialContent }) {
     setDirty(false)
   }, [])
 
+  const onShareComplete = useCallback((ID) => {
+    setShouldClearOnUpdate(false)
+    Router.push(`/${ID}`).then(() => {
+      setShouldClearOnUpdate(true)
+    })
+  }, [])
+
   const isDefaultContent =
     initialContent.html === defaultContent.html &&
     initialContent.css === defaultContent.css &&
@@ -424,7 +462,9 @@ function Pen({ initialContent }) {
           <Share
             editorRef={editorRef}
             onShareStart={onShareStart}
+            onShareComplete={onShareComplete}
             dirty={dirty}
+            initialID={initialContent.ID}
           />
         </div>
         <div className="flex items-center space-x-5 ml-auto">
@@ -611,12 +651,14 @@ function Pen({ initialContent }) {
                     'mt-10 border-t border-gray-200 dark:border-gray-600 md:mt-0 md:border-0'
                   }
                   onLoad={() => {
-                    injectHtml(initialContent.html)
+                    inject({
+                      html: initialContent.html,
+                      ...(isDefaultContent
+                        ? { css: defaultContent.compiledCss }
+                        : {}),
+                    })
                     compileNow(initialContent)
                   }}
-                  initialCss={
-                    isDefaultContent ? defaultContent.compiledCss : ''
-                  }
                 />
                 <ErrorOverlay error={error} />
               </div>

@@ -19,7 +19,7 @@ const modeToDoc = {
   javascript: 'config',
 }
 
-export default function EditorMobile2({
+export default function EditorMobile({
   initialContent,
   onChange,
   activeTab,
@@ -30,6 +30,8 @@ export default function EditorMobile2({
   const content = useRef(initialContent)
   const history = useRef({})
   const [i, setI] = useState(0)
+  const skipNextOnChange = useRef(true)
+  const initial = useRef(true)
 
   useEffect(() => {
     cmRef.current = CodeMirror(ref.current, {
@@ -48,9 +50,24 @@ export default function EditorMobile2({
   }, [])
 
   useEffect(() => {
+    if (initial.current) {
+      initial.current = false
+      return
+    }
+    content.current = initialContent
+    history.current = {}
+    cmRef.current.setValue(initialContent[activeTab])
+    cmRef.current.clearHistory()
+  }, [initialContent])
+
+  useEffect(() => {
     function handleChange() {
       content.current[activeTab] = cmRef.current.getValue()
-      onChange(activeTab, content.current)
+      if (skipNextOnChange.current) {
+        skipNextOnChange.current = false
+      } else {
+        onChange(activeTab, content.current)
+      }
     }
     cmRef.current.on('change', handleChange)
     return () => {
@@ -63,6 +80,7 @@ export default function EditorMobile2({
       modeToDoc[cmRef.current.getOption('mode')]
     ] = cmRef.current.getHistory()
 
+    skipNextOnChange.current = true
     cmRef.current.setValue(content.current[activeTab])
     cmRef.current.setOption('mode', docToMode[activeTab])
     if (history.current[activeTab]) {

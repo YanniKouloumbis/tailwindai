@@ -14,6 +14,7 @@ export function createMonacoEditor({
 }) {
   let editor
   const disposables = []
+  let shouldTriggerOnChange = true
 
   window.MonacoEnvironment.getWorkerUrl = (_moduleId, label) => {
     if (label === 'css' || label === 'tailwindcss')
@@ -74,7 +75,7 @@ export function createMonacoEditor({
   setupKeybindings(editor)
 
   function triggerOnChange(id, newContent) {
-    if (onChange) {
+    if (onChange && shouldTriggerOnChange) {
       onChange(id, {
         html:
           id === 'html' && typeof newContent !== 'undefined'
@@ -119,6 +120,22 @@ export function createMonacoEditor({
     documents,
     getValue(doc) {
       return documents[doc].getModel()?.getValue() || initialContent[doc]
+    },
+    reset(content) {
+      shouldTriggerOnChange = false
+      initialContent = content
+      if (documents.html.getModel()) {
+        documents.html.getModel().setValue(content.html)
+      }
+      if (documents.css.getModel()) {
+        documents.css.getModel().setValue(content.css)
+      }
+      if (documents.config.getModel()) {
+        documents.config.getModel().setValue(content.config)
+      }
+      window.setTimeout(() => {
+        shouldTriggerOnChange = true
+      }, 0)
     },
     dispose() {
       disposables.forEach((disposable) => disposable.dispose())
