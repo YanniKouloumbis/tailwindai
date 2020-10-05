@@ -66,7 +66,10 @@ export function createMonacoEditor({
   })
 
   editor = monaco.editor.create(container, {
+    fontFamily:
+      'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     fontSize: 14,
+    lineHeight: 21,
     minimap: { enabled: false },
     theme: getTheme() === 'dark' ? 'tw-dark' : 'vs',
   })
