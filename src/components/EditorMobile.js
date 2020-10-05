@@ -40,7 +40,8 @@ export default function EditorMobile({
       lineNumbers: true,
       viewportMargin: Infinity,
       tabSize: 2,
-      theme: getTheme() === 'dark' ? 'material' : 'default',
+      theme: getTheme(),
+      addModeClass: true,
     })
     inRef({
       getValue(doc) {
@@ -99,10 +100,7 @@ export default function EditorMobile({
 
   useEffect(() => {
     function handleThemeChange(theme) {
-      cmRef.current.setOption(
-        'theme',
-        theme === 'dark' ? 'material' : 'default'
-      )
+      cmRef.current.setOption('theme', theme)
     }
     const dispose = onDidChangeTheme(handleThemeChange)
     return () => dispose()

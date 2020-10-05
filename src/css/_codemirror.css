@@ -27,8 +27,6 @@
 /* GUTTER */
 
 .CodeMirror-gutters {
-  border-right: 1px solid #ddd;
-  background-color: #f7f7f7;
   white-space: nowrap;
 }
 .CodeMirror-linenumbers {}
@@ -36,7 +34,7 @@
   padding: 0 3px 0 5px;
   min-width: 20px;
   text-align: right;
-  color: #999;
+  color: #237893;
   white-space: nowrap;
 }
 
@@ -46,7 +44,7 @@
 /* CURSOR */
 
 .CodeMirror-cursor {
-  border-left: 1px solid black;
+  border-left: 2px solid black;
   border-right: none;
   width: 0;
 }
@@ -110,8 +108,8 @@
 
 /* DEFAULT THEME */
 
-.cm-s-default .cm-header {color: blue;}
-.cm-s-default .cm-quote {color: #090;}
+.cm-s-light .cm-header {color: blue;}
+.cm-s-light .cm-quote {color: #090;}
 .cm-negative {color: #d44;}
 .cm-positive {color: #292;}
 .cm-header, .cm-strong {font-weight: bold;}
@@ -119,29 +117,42 @@
 .cm-link {text-decoration: underline;}
 .cm-strikethrough {text-decoration: line-through;}
 
-.cm-s-default .cm-keyword {color: #708;}
-.cm-s-default .cm-atom {color: #219;}
-.cm-s-default .cm-number {color: #164;}
-.cm-s-default .cm-def {color: #00f;}
-.cm-s-default .cm-variable,
-.cm-s-default .cm-punctuation,
-.cm-s-default .cm-property,
-.cm-s-default .cm-operator {}
-.cm-s-default .cm-variable-2 {color: #05a;}
-.cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
-.cm-s-default .cm-comment {color: #a50;}
-.cm-s-default .cm-string {color: #a11;}
-.cm-s-default .cm-string-2 {color: #f50;}
-.cm-s-default .cm-meta {color: #555;}
-.cm-s-default .cm-qualifier {color: #555;}
-.cm-s-default .cm-builtin {color: #30a;}
-.cm-s-default .cm-bracket {color: #997;}
-.cm-s-default .cm-tag {color: #170;}
-.cm-s-default .cm-attribute {color: #00c;}
-.cm-s-default .cm-hr {color: #999;}
-.cm-s-default .cm-link {color: #00c;}
+.cm-s-light .cm-keyword {color: #0451a5;}
+.cm-s-light .cm-atom {color: #219;}
+.cm-s-light .cm-number {color: #098658;}
+.cm-s-light .cm-def {color: #00f;}
+.cm-s-light .cm-variable {color:#0451a5;}
+.cm-s-light .cm-punctuation {}
+.cm-s-light .cm-property {color: #ff0000;}
+.cm-s-light .cm-operator {}
+.cm-s-light .cm-variable-2 {color: #05a;}
+.cm-s-light .cm-variable-3, .cm-s-light .cm-type {color: #085;}
+.cm-s-light .cm-comment {color: #008000;}
+.cm-s-light .cm-string {color: #0000ff;}
+.cm-s-light .cm-string-2 {color: #f50;}
+.cm-s-light .cm-meta {color: #555;}
+.cm-s-light .cm-qualifier {color: #800000;}
+.cm-s-light .cm-builtin {color: #30a;}
+.cm-s-light .cm-bracket {color: #383838;}
+.cm-s-light .cm-tag {color: #800000;}
+.cm-s-light .cm-tag.cm-m-tailwindcss {color: #0451a5;}
+.cm-s-light .cm-attribute {color: #ff0000;}
+.cm-s-light .cm-hr {color: #999;}
+.cm-s-light .cm-link {color: #00c;}
+.cm-s-light .cm-variable.cm-m-javascript,
+.cm-s-light .cm-def.cm-m-javascript,
+.cm-s-light .cm-operator.cm-m-javascript,
+.cm-s-light .cm-property.cm-m-javascript {
+  color: inherit;
+}
+.cm-s-light .cm-string.cm-m-javascript {
+  color: #a31515;
+}
+.cm-s-light .cm-keyword.cm-m-javascript {
+  color: #0000ff;
+}
 
-.cm-s-default .cm-error {color: #f00;}
+.cm-s-light .cm-error {color: #f00;}
 .cm-invalidchar {color: #f00;}
 
 .CodeMirror-composing { border-bottom: 2px solid; }
@@ -323,11 +334,11 @@ div.CodeMirror-dragcursors {
   visibility: visible;
 }
 
-.CodeMirror-selected { background: #d9d9d9; }
-.CodeMirror-focused .CodeMirror-selected { background: #d7d4f0; }
+.CodeMirror-selected { background: #e5ebf1; }
+.CodeMirror-focused .CodeMirror-selected { background: #add6ff; }
 .CodeMirror-crosshair { cursor: crosshair; }
-.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: #d7d4f0; }
-.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #d7d4f0; }
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: #add6ff; }
+.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #add6ff; }
 
 .cm-searching {
   background-color: #ffa;
