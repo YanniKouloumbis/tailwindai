@@ -5,7 +5,7 @@ import {
   useLayoutEffect,
   useCallback,
 } from 'react'
-import Worker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/postcss.worker.js'
+import Worker from 'worker-loader?publicPath=/_next/&filename=static/chunks/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/postcss.worker.js'
 import dynamic from 'next/dynamic'
 import { requestResponse } from '../utils/workers'
 import { debounce } from 'debounce'

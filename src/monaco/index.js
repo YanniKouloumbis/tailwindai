@@ -1,5 +1,5 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import PrettierWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/prettier.worker.js'
+import PrettierWorker from 'worker-loader?publicPath=/_next/&filename=static/chunks/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!../workers/prettier.worker.js'
 import { createWorkerQueue } from '../utils/workers'
 import { setupHtmlMode } from './html'
 import { setupCssMode } from './css'
@@ -20,11 +20,11 @@ export function createMonacoEditor({
   window.MonacoEnvironment.getWorkerUrl = (_moduleId, label) => {
     const v = `?v=${versions['monaco-editor']}`
     if (label === 'css' || label === 'tailwindcss')
-      return `_next/static/css.worker.js${v}`
-    if (label === 'html') return `_next/static/html.worker.js${v}`
+      return `_next/static/chunks/css.worker.js${v}`
+    if (label === 'html') return `_next/static/chunks/html.worker.js${v}`
     if (label === 'typescript' || label === 'javascript')
-      return `_next/static/ts.worker.js${v}`
-    return `_next/static/editor.worker.js${v}`
+      return `_next/static/chunks/ts.worker.js${v}`
+    return `_next/static/chunks/editor.worker.js${v}`
   }
 
   disposables.push(registerDocumentFormattingEditProviders())

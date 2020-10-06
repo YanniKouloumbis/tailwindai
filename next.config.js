@@ -44,7 +44,7 @@ module.exports = withTM({
     config.plugins.push(
       new MonacoWebpackPlugin({
         languages: ['css', 'typescript', 'javascript', 'html'],
-        filename: 'static/[name].worker.js',
+        filename: 'static/chunks/[name].worker.js',
       })
     )
 
