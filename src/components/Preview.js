@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useLayoutEffect, useState, useRef } from 'react'
 import clsx from 'clsx'
+import { getPointerPosition } from '../utils/getPointerPosition'
 
 export const Preview = forwardRef(
   (
@@ -88,39 +89,42 @@ export const Preview = forwardRef(
 
       if (resizing) {
         function onMouseMove(e) {
+          e.preventDefault()
+          const { x, y } = getPointerPosition(e)
           if (resizing.handle === 'bottom') {
             document.body.classList.add('cursor-ns-resize')
             onChangeResponsiveSize(({ width }) => ({
               width,
-              height: resizing.startHeight + (e.clientY - resizing.startY),
+              height: resizing.startHeight + (y - resizing.startY),
             }))
           } else if (resizing.handle === 'left') {
             document.body.classList.add('cursor-ew-resize')
             onChangeResponsiveSize(({ height }) => ({
-              width: resizing.startWidth - (e.clientX - resizing.startX) * 2,
+              width: resizing.startWidth - (x - resizing.startX) * 2,
               height,
             }))
           } else if (resizing.handle === 'right') {
             document.body.classList.add('cursor-ew-resize')
             onChangeResponsiveSize(({ height }) => ({
-              width: resizing.startWidth + (e.clientX - resizing.startX) * 2,
+              width: resizing.startWidth + (x - resizing.startX) * 2,
               height,
             }))
           } else if (resizing.handle === 'bottom-left') {
             document.body.classList.add('cursor-nesw-resize')
             onChangeResponsiveSize(() => ({
-              width: resizing.startWidth - (e.clientX - resizing.startX) * 2,
-              height: resizing.startHeight + (e.clientY - resizing.startY),
+              width: resizing.startWidth - (x - resizing.startX) * 2,
+              height: resizing.startHeight + (y - resizing.startY),
             }))
           } else if (resizing.handle === 'bottom-right') {
             document.body.classList.add('cursor-nwse-resize')
             onChangeResponsiveSize(() => ({
-              width: resizing.startWidth + (e.clientX - resizing.startX) * 2,
-              height: resizing.startHeight + (e.clientY - resizing.startY),
+              width: resizing.startWidth + (x - resizing.startX) * 2,
+              height: resizing.startHeight + (y - resizing.startY),
             }))
           }
         }
-        function onMouseUp() {
+        function onMouseUp(e) {
+          e.preventDefault()
           if (resizing.handle === 'bottom') {
             document.body.classList.remove('cursor-ns-resize')
           } else if (resizing.handle === 'left') {
@@ -136,12 +140,75 @@ export const Preview = forwardRef(
         }
         window.addEventListener('mousemove', onMouseMove)
         window.addEventListener('mouseup', onMouseUp)
+        window.addEventListener('touchmove', onMouseMove)
+        window.addEventListener('touchend', onMouseUp)
         return () => {
           window.removeEventListener('mousemove', onMouseMove)
           window.removeEventListener('mouseup', onMouseUp)
+          window.removeEventListener('touchmove', onMouseMove)
+          window.removeEventListener('touchend', onMouseUp)
         }
       }
     }, [resizing, size])
+
+    function startLeft(e) {
+      const pos = getPointerPosition(e)
+      if (pos === null) return
+      e.preventDefault()
+      setResizing({
+        handle: 'left',
+        startWidth: constrainedResponsiveSize.width,
+        startX: pos.x,
+      })
+    }
+
+    function startRight(e) {
+      const pos = getPointerPosition(e)
+      if (pos === null) return
+      e.preventDefault()
+      setResizing({
+        handle: 'right',
+        startWidth: constrainedResponsiveSize.width,
+        startX: pos.x,
+      })
+    }
+
+    function startBottomLeft(e) {
+      const pos = getPointerPosition(e)
+      if (pos === null) return
+      e.preventDefault()
+      setResizing({
+        handle: 'bottom-left',
+        startWidth: constrainedResponsiveSize.width,
+        startHeight: constrainedResponsiveSize.height,
+        startX: pos.x,
+        startY: pos.y,
+      })
+    }
+
+    function startBottom(e) {
+      const pos = getPointerPosition(e)
+      if (pos === null) return
+      e.preventDefault()
+      setResizing({
+        handle: 'bottom',
+        startHeight: constrainedResponsiveSize.height,
+        startY: pos.y,
+      })
+    }
+
+    function startBottomRight(e) {
+      const pos = getPointerPosition(e)
+      if (pos === null) return
+      e.preventDefault()
+      setResizing({
+        handle: 'bottom-right',
+        startWidth: constrainedResponsiveSize.width,
+        startHeight: constrainedResponsiveSize.height,
+        startX: pos.x,
+        startY: pos.y,
+      })
+    }
 
     return (
       <div
@@ -177,13 +244,8 @@ export const Preview = forwardRef(
           {responsiveDesignMode && (
             <div
               className="cursor-ew-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
-              onMouseDown={(e) =>
-                setResizing({
-                  handle: 'left',
-                  startWidth: constrainedResponsiveSize.width,
-                  startX: e.clientX,
-                })
-              }
+              onMouseDown={startLeft}
+              onTouchStart={startLeft}
             >
               <svg
                 viewBox="0 0 6 16"
@@ -307,13 +369,8 @@ export const Preview = forwardRef(
             <>
               <div
                 className="cursor-ew-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
-                onMouseDown={(e) =>
-                  setResizing({
-                    handle: 'right',
-                    startWidth: constrainedResponsiveSize.width,
-                    startX: e.clientX,
-                  })
-                }
+                onMouseDown={startRight}
+                onTouchStart={startRight}
               >
                 <svg
                   viewBox="0 0 6 16"
@@ -327,15 +384,8 @@ export const Preview = forwardRef(
               </div>
               <div
                 className="cursor-nesw-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
-                onMouseDown={(e) =>
-                  setResizing({
-                    handle: 'bottom-left',
-                    startWidth: constrainedResponsiveSize.width,
-                    startHeight: constrainedResponsiveSize.height,
-                    startX: e.clientX,
-                    startY: e.clientY,
-                  })
-                }
+                onMouseDown={startBottomLeft}
+                onTouchStart={startBottomLeft}
               >
                 <svg
                   viewBox="0 0 16 6"
@@ -350,13 +400,8 @@ export const Preview = forwardRef(
               </div>
               <div
                 className="cursor-ns-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
-                onMouseDown={(e) =>
-                  setResizing({
-                    handle: 'bottom',
-                    startHeight: constrainedResponsiveSize.height,
-                    startY: e.clientY,
-                  })
-                }
+                onMouseDown={startBottom}
+                onTouchStart={startBottom}
               >
                 <svg
                   viewBox="0 0 16 6"
@@ -370,15 +415,8 @@ export const Preview = forwardRef(
               </div>
               <div
                 className="cursor-nwse-resize select-none bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-400 transition-colors duration-150 flex items-center justify-center"
-                onMouseDown={(e) =>
-                  setResizing({
-                    handle: 'bottom-right',
-                    startWidth: constrainedResponsiveSize.width,
-                    startHeight: constrainedResponsiveSize.height,
-                    startX: e.clientX,
-                    startY: e.clientY,
-                  })
-                }
+                onMouseDown={startBottomRight}
+                onTouchStart={startBottomRight}
               >
                 <svg
                   viewBox="0 0 16 6"
