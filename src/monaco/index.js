@@ -5,6 +5,7 @@ import { setupHtmlMode } from './html'
 import { setupCssMode } from './css'
 import { setupJavaScriptMode } from './javascript'
 import { getTheme } from '../utils/theme'
+import versions from '../preval/versions'
 
 export function createMonacoEditor({
   container,
@@ -17,12 +18,13 @@ export function createMonacoEditor({
   let shouldTriggerOnChange = true
 
   window.MonacoEnvironment.getWorkerUrl = (_moduleId, label) => {
+    const v = `?v=${versions['monaco-editor']}`
     if (label === 'css' || label === 'tailwindcss')
-      return '_next/static/css.worker.js'
-    if (label === 'html') return '_next/static/html.worker.js'
+      return `_next/static/css.worker.js${v}`
+    if (label === 'html') return `_next/static/html.worker.js${v}`
     if (label === 'typescript' || label === 'javascript')
-      return '_next/static/ts.worker.js'
-    return '_next/static/editor.worker.js'
+      return `_next/static/ts.worker.js${v}`
+    return `_next/static/editor.worker.js${v}`
   }
 
   disposables.push(registerDocumentFormattingEditProviders())
