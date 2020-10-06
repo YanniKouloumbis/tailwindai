@@ -17,6 +17,7 @@ import { asCompletionItem as asLspCompletionItem } from '../monaco/monacoToLsp'
 import CompileWorker from 'worker-loader?publicPath=/_next/&filename=static/[name].[hash].js&chunkFilename=static/chunks/[id].[contenthash].worker.js!./compile.worker.js'
 import { createWorkerQueue } from '../utils/workers'
 import './subworkers'
+import redent from 'redent'
 
 const compileWorker = createWorkerQueue(CompileWorker)
 
@@ -63,6 +64,7 @@ addEventListener('message', async (event) => {
         })
         if (hover && hover.contents.language === 'css') {
           hover.contents.language = 'tailwindcss'
+          hover.contents.value = hover.contents.value.replace(/\t/g, '  ')
         }
         result = fallback(() => asMonacoHover(hover))
         break
