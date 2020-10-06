@@ -2,11 +2,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build:plugins": "node src/scripts/buildBuiltinPlugins.js",
+    "build": "npm run build:plugins && next build",
     "start": "next start"
   },
   "dependencies": {
     "@ctrl/tinycolor": "^3.1.4",
+    "@tailwindcss/custom-forms": "^0.2.1",
+    "@tailwindcss/ui": "^0.6.2",
     "@typescript-eslint/eslint-plugin": "2.x",
     "@typescript-eslint/parser": "2.x",
     "autoprefixer": "^9.8.6",

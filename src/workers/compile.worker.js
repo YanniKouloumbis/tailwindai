@@ -77,8 +77,13 @@ addEventListener('message', async (event) => {
     }
   }
 
+  const builtinPlugins = {
+    '@tailwindcss/custom-forms': versions['@tailwindcss/custom-forms'],
+    '@tailwindcss/ui': versions['@tailwindcss/ui'],
+  }
+
   const before = `(async function(module){
-    const require = async (m, line) => {
+    const require = async (m, line, builtinPlugins) => {
       if (typeof m !== 'string') {
         throw new RequireError('The "id" argument must be of type string. Received ' + typeof m, line)
       }
@@ -87,7 +92,10 @@ addEventListener('message', async (event) => {
       }
       let result
       try {
-        result = await self.importShim('https://cdn.skypack.dev/' + m + '?min')
+        const href = builtinPlugins[m]
+          ? '/plugins/' + m + '@' + builtinPlugins[m] + '.js'
+          : 'https://cdn.skypack.dev/' + m + '?min'
+        result = await self.importShim(href)
       } catch (error) {
         throw new RequireError("Cannot find module '" + m + "'", line)
       }
@@ -107,7 +115,7 @@ addEventListener('message', async (event) => {
               (_m, id) =>
                 `await require(${id.trim() === '' ? 'undefined' : id}, ${
                   i + 1
-                })`
+                }, ${JSON.stringify(builtinPlugins)})`
             )
           )
           .join('\n') +

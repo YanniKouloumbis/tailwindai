@@ -20,6 +20,19 @@ function getExternal(context, request, callback) {
 }
 
 module.exports = withTM({
+  async headers() {
+    return [
+      {
+        source: '/plugins/:path*',
+        headers: [
+          {
+            key: 'cache-control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ]
+  },
   webpack: (config, { isServer }) => {
     config.module.rules
       .filter((rule) => rule.oneOf)
