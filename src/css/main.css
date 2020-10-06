@@ -1,6 +1,6 @@
 @import 'tailwindcss/tailwind.css';
-@import './_codemirror.css';
-@import './_codemirror-material.css';
+@import './codemirror/base.css';
+@import './codemirror/dark.css';
 
 @font-face {
   font-family: 'Inter var';
@@ -42,11 +42,11 @@ body.cursor-nwse-resize * {
   transition: none !important;
 }
 
+/* purgecss start ignore */
 .monaco-editor .suggest-widget .monaco-list .monaco-list-row > .contents {
   display: block;
 }
 
-/* purgecss start ignore */
 .Resizer {
   background-color: theme('colors.gray.200');
   z-index: 1;
