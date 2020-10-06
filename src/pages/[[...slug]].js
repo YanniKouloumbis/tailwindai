@@ -401,8 +401,8 @@ function Pen({
       setSize((size) => {
         const windowSize =
           size.layout === 'horizontal'
-            ? window.innerHeight - HEADER_HEIGHT
-            : window.innerWidth
+            ? document.documentElement.clientHeight - HEADER_HEIGHT
+            : document.documentElement.clientWidth
 
         if (isMd && size.layout !== 'preview') {
           const min = size.layout === 'vertical' ? 320 : 320 + TAB_BAR_HEIGHT
@@ -469,8 +469,8 @@ function Pen({
     setSize((size) => {
       const windowSize =
         size.layout === 'vertical'
-          ? window.innerWidth
-          : window.innerHeight - HEADER_HEIGHT
+          ? document.documentElement.clientWidth
+          : document.documentElement.clientHeight - HEADER_HEIGHT
       const percentage = newSize / windowSize
       return {
         ...size,
