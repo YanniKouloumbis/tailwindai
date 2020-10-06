@@ -307,6 +307,20 @@ const language = {
         '[@](keyframes|-webkit-keyframes|-moz-keyframes|-o-keyframes)',
         { token: 'keyword', next: '@keyframedeclaration' },
       ],
+      [
+        '[@](media)',
+        {
+          token: 'keyword',
+          next: '@mediadeclaration',
+        },
+      ],
+      [
+        '[@](supports)',
+        {
+          token: 'keyword',
+          next: '@mediadeclaration',
+        },
+      ],
       ['[@](tailwind)', { token: 'keyword', next: '@tailwinddirective' }],
       ['[@](screen)', { token: 'keyword', next: '@screenheader' }],
       ['[@](variants)', { token: 'keyword', next: '@variantsheader' }],
@@ -456,6 +470,18 @@ const language = {
       { include: '@comments' },
       ['@identifier', 'attribute.value'],
       ['{', { token: 'delimiter.bracket', switchTo: '@keyframebody' }],
+    ],
+
+    mediadeclaration: [
+      { include: '@comments' },
+      ['\\(', { token: 'delimeter.bracket', next: '@mediaparam' }],
+      ['{', { token: 'delimiter.bracket', switchTo: '@selector' }],
+    ],
+    mediaparam: [
+      { include: '@comments' },
+      { include: '@numbers' },
+      ['@identifier', 'attribute.value'],
+      ['\\)', 'delimiter.bracket', '@pop'],
     ],
 
     tailwinddirective: [
