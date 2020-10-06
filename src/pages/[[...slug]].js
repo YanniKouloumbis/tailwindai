@@ -621,7 +621,9 @@ function Pen({
             {(!isMd || size.layout !== 'preview') && (
               <div
                 className="flex items-center flex-none pl-5 pr-4 sm:pl-6 absolute z-10 top-0 left-0 -mt-px"
-                style={{ width: size.current }}
+                style={{
+                  width: size.layout === 'vertical' ? size.current : '100%',
+                }}
               >
                 <div className="flex space-x-5">
                   <TabButton
