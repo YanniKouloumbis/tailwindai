@@ -322,6 +322,16 @@ function Pen({
   )
 
   useEffect(() => {
+    setDirty(true)
+  }, [
+    activeTab,
+    size.layout,
+    responsiveSize.width,
+    responsiveSize.height,
+    responsiveDesignMode,
+  ])
+
+  useEffect(() => {
     setDirty(false)
     if (
       shouldClearOnUpdate &&
