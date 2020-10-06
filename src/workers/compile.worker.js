@@ -5,6 +5,7 @@ import resolveConfig from 'tailwindcss/resolveConfig'
 import extractClasses from './extractClasses'
 import { removeFunctions } from '../utils/object'
 import { getVariants } from '../utils/getVariants'
+import versions from '../preval/versions'
 const applyComplexClasses = require('tailwindcss/lib/flagged/applyComplexClasses')
 
 // TODO
@@ -161,7 +162,7 @@ addEventListener('message', async (event) => {
     state.config = resolveConfig(mod.exports)
     state.variants = getVariants({ config: state.config, postcss })
     removeFunctions(state.config)
-    state.version = '1.8.5'
+    state.version = versions.tailwindcss
     state.editor = {
       userLanguages: {},
       capabilities: {},
