@@ -34,12 +34,17 @@ export function setupJavaScriptMode(content, onChange, getEditor) {
             originalModel === proxyModel ? model : originalModel,
             owner,
             originalModel === proxyModel
-              ? markers.map((marker) => ({
-                  ...marker,
-                  startLineNumber: marker.startLineNumber - 1,
-                  endLineNumber: marker.endLineNumber - 1,
-                  relatedInformation: [],
-                }))
+              ? markers.map((marker) => {
+                  const lineDelta = getLineDelta(model, {
+                    lineNumber: marker.startLineNumber,
+                  })
+                  return {
+                    ...marker,
+                    startLineNumber: marker.startLineNumber - lineDelta,
+                    endLineNumber: marker.endLineNumber - lineDelta,
+                    relatedInformation: [],
+                  }
+                })
               : markers
           )
         }
@@ -91,6 +96,20 @@ export function setupJavaScriptMode(content, onChange, getEditor) {
           )
         )
 
+        disposables.push(
+          monaco.languages.typescript.javascriptDefaults.addExtraLib(
+            `
+              import { TailwindConfig, PluginCreator } from 'tailwindcss';
+              function createPlugin (plugin: PluginCreator, config?: TailwindConfig): {
+                handler: PluginCreator,
+                config: TailwindConfig
+              };
+              export = createPlugin;
+            `,
+            'file:///node_modules/@types/tailwindcss/plugin.d.ts'
+          )
+        )
+
         model = monaco.editor.createModel(
           content || '',
           'javascript',
@@ -124,9 +143,11 @@ export function setupJavaScriptMode(content, onChange, getEditor) {
           if (!this._provideCompletionItems) {
             this._provideCompletionItems = _provideCompletionItems.bind(this)
           }
+          const lineDelta =
+            originalModel === model ? getLineDelta(model, position) : 0
           const result = await this._provideCompletionItems(
             originalModel === model ? proxyModel : originalModel,
-            originalModel === model ? position.delta(1) : position,
+            originalModel === model ? position.delta(lineDelta) : position,
             ...rest
           )
           if (!result) return result
@@ -137,9 +158,9 @@ export function setupJavaScriptMode(content, onChange, getEditor) {
                     ...suggestion,
                     uri: model.uri,
                     range: new monaco.Range(
-                      suggestion.range.startLineNumber - 1,
+                      suggestion.range.startLineNumber - lineDelta,
                       suggestion.range.startColumn,
-                      suggestion.range.endLineNumber - 1,
+                      suggestion.range.endLineNumber - lineDelta,
                       suggestion.range.endColumn
                     ),
                   }))
@@ -158,6 +179,21 @@ export function setupJavaScriptMode(content, onChange, getEditor) {
       disposables.forEach((disposable) => disposable.dispose())
     },
   }
+}
+
+function getLineDelta(modelOrValue, position) {
+  const value =
+    typeof modelOrValue === 'string' ? modelOrValue : modelOrValue.getValue()
+  const lines = value.split('\n')
+  let exportLine
+  for (let i = 0; i < lines.length; i++) {
+    if (/^(\s*)module\.exports(\s*=)/.test(lines[i])) {
+      exportLine = i + 1
+      break
+    }
+  }
+  if (typeof exportLine === 'undefined') return 0
+  return position.lineNumber < exportLine ? 0 : 1
 }
 
 function addTypeAnnotationToJs(js) {

@@ -251,8 +251,8 @@ type PluginAPI = {
   corePlugins: (path: string) => boolean;
   postcss: typeof postcss;
 };
-type PluginCreator = (api: PluginAPI) => void;
-type PluginsConfig = PluginCreator[];
+export type PluginCreator = (api: PluginAPI) => void;
+type PluginsConfig = (PluginCreator | { handler: PluginCreator, config?: TailwindConfig })[];
 
 /** The holy grail Tailwind config definition */
 export type TailwindConfig = Partial<
