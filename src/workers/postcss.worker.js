@@ -57,14 +57,14 @@ addEventListener('message', async (event) => {
         )
         break
       case 'hover':
-        result = fallback(() =>
-          asMonacoHover(
-            doHover(state, document, {
-              line: event.data.lsp.position.lineNumber - 1,
-              character: event.data.lsp.position.column - 1,
-            })
-          )
-        )
+        const hover = doHover(state, document, {
+          line: event.data.lsp.position.lineNumber - 1,
+          character: event.data.lsp.position.column - 1,
+        })
+        if (hover && hover.contents.language === 'css') {
+          hover.contents.language = 'tailwindcss'
+        }
+        result = fallback(() => asMonacoHover(hover))
         break
       case 'validate':
         result = await fallback(

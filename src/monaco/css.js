@@ -23,6 +23,10 @@ export function setupCssMode(content, onChange, worker, getEditor) {
 
   monaco.languages.register({ id: 'tailwindcss' })
 
+  disposables.push(
+    monaco.languages.setMonarchTokensProvider('tailwindcss', language)
+  )
+
   return {
     getModel: () => model,
     updateDecorations: () => updateDecorations(),
@@ -33,10 +37,6 @@ export function setupCssMode(content, onChange, worker, getEditor) {
             'tailwindcss',
             languageConfiguration
           )
-        )
-
-        disposables.push(
-          monaco.languages.setMonarchTokensProvider('tailwindcss', language)
         )
 
         disposables.push(
