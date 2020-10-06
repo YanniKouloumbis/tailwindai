@@ -166,7 +166,7 @@ function Share({
             state === 'copied' || state === 'loading' ? 'true' : 'false'
           }
         >
-          Save
+          Share
         </span>
         <span
           className={clsx('absolute inset-0 flex items-center justify-center', {
