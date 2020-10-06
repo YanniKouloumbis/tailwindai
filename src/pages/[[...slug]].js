@@ -33,6 +33,7 @@ const Editor = isMobile() ? EditorMobile : EditorDesktop
 const HEADER_HEIGHT = 60 - 1
 const TAB_BAR_HEIGHT = 40
 const RESIZER_SIZE = 1
+const DEFAULT_RESPONSIVE_SIZE = { width: 540, height: 720 }
 
 function TabButton({ isActive, onClick, children }) {
   return (
@@ -52,21 +53,30 @@ function TabButton({ isActive, onClick, children }) {
   )
 }
 
-function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
-  const [{ state, ID }, setState] = useState({
-    state: initialID ? 'disabled' : 'idle',
-    ID: initialID,
+function Share({
+  initialPath,
+  editorRef,
+  dirty,
+  layout,
+  responsiveSize,
+  activeTab,
+  onShareStart,
+  onShareComplete,
+}) {
+  const [{ state, path }, setState] = useState({
+    state: 'disabled',
+    path: initialPath,
   })
 
   useEffect(() => {
-    if (initialID) {
+    if (initialPath) {
       setState((current) =>
         current.state === 'idle' || current.state === 'disabled'
-          ? { state: 'disabled', ID: initialID }
+          ? { state: 'disabled', path: initialPath }
           : current
       )
     }
-  }, [initialID])
+  }, [initialPath])
 
   useEffect(() => {
     let current = true
@@ -87,34 +97,39 @@ function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
         .then((res) => res.json())
         .then((res) => {
           if (current) {
-            if (onShareComplete) onShareComplete(res.ID)
+            const newPath = `/${res.ID}${getLayoutQueryString({
+              layout,
+              responsiveSize,
+              file: activeTab,
+            })}`
+            if (onShareComplete) onShareComplete(newPath)
             navigator.clipboard
-              .writeText(window.location.origin + '/' + res.ID)
+              .writeText(window.location.origin + newPath)
               .then(() => {
                 if (current) {
-                  setState({ state: 'copied', ID: res.ID })
+                  setState({ state: 'copied', path: newPath })
                 }
               })
               .catch(() => {
                 if (current) {
-                  setState({ state: 'disabled', ID: res.ID })
+                  setState({ state: 'disabled', path: newPath })
                 }
               })
           }
         })
     } else if (state === 'copied') {
       window.setTimeout(() => {
-        setState(({ state, ID: currentID }) =>
-          state === 'copied' && currentID === ID
-            ? { state: 'disabled', ID: currentID }
-            : { state, ID: currentID }
+        setState(({ state, path: currentPath }) =>
+          state === 'copied' && currentPath === path
+            ? { state: 'disabled', path: currentPath }
+            : { state, path: currentPath }
         )
       }, 1500)
     }
     return () => {
       current = false
     }
-  }, [state, ID, editorRef, onShareStart, onShareComplete])
+  }, [state, path, editorRef, onShareStart, onShareComplete])
 
   useEffect(() => {
     if (dirty) {
@@ -123,11 +138,11 @@ function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
   }, [dirty])
 
   return (
-    <div className="hidden sm:flex items-center space-x-4">
+    <div className="hidden sm:flex items-center space-x-4 min-w-0">
       <button
         type="button"
         className={clsx(
-          'relative rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:focus:bg-gray-700 dark:focus:border-turquoise-500',
+          'relative flex-none rounded-md border border-gray-200 text-sm font-medium leading-5 py-1.5 px-4 focus:border-turquoise-400 focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:border-transparent dark:focus:bg-gray-700 dark:focus:border-turquoise-500',
           {
             'opacity-50': state === 'disabled',
             'cursor-auto':
@@ -186,10 +201,11 @@ function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
       {(state === 'copied' || state === 'disabled') && (
         <button
           type="button"
-          className="group flex items-center space-x-1.5 text-sm leading-5 font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+          className="group flex-auto min-w-0 flex items-center space-x-1.5 text-sm leading-5 font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+          title={`https://play.tailwindcss.com${path}`}
           onClick={() => {
             navigator.clipboard
-              .writeText(window.location.origin + '/' + ID)
+              .writeText(window.location.origin + path)
               .then(() => {
                 setState((currentState) => ({
                   ...currentState,
@@ -198,16 +214,11 @@ function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
               })
           }}
         >
-          <span>
-            <span className="hidden lg:inline">
-              https://play.tailwindcss.com
-            </span>
-            /{ID}
-          </span>
+          <span className="truncate">{path}</span>
           <svg
             width="20"
             height="20"
-            className="fill-current opacity-0 group-hover:opacity-100 group-focus:opacity-100"
+            className="flex-none fill-current opacity-0 group-hover:opacity-100 group-focus:opacity-100"
           >
             <path
               fillRule="evenodd"
@@ -221,11 +232,11 @@ function Share({ initialID, editorRef, dirty, onShareStart, onShareComplete }) {
   )
 }
 
-export default function App({ initialContent, errorCode }) {
+export default function App({ errorCode, ...props }) {
   if (errorCode) {
     return <Error statusCode={errorCode} />
   }
-  return <Pen initialContent={initialContent} />
+  return <Pen {...props} />
 }
 
 function HeaderButton({
@@ -273,13 +284,21 @@ function HeaderButton({
   )
 }
 
-function Pen({ initialContent }) {
+function Pen({
+  initialContent,
+  initialPath,
+  initialLayout,
+  initialResponsiveSize,
+  initialActiveTab,
+}) {
   const previewRef = useRef()
   const worker = useRef()
-  const [size, setSize] = useState({ percentage: 0.5, layout: 'vertical' })
+  const [size, setSize] = useState({ percentage: 0.5, layout: initialLayout })
   const [resizing, setResizing] = useState(false)
-  const [activeTab, setActiveTab] = useState('html')
-  const [activePane, setActivePane] = useState('editor')
+  const [activeTab, setActiveTab] = useState(initialActiveTab)
+  const [activePane, setActivePane] = useState(
+    initialLayout === 'preview' ? 'preview' : 'editor'
+  )
   const isMd = useMedia('(min-width: 768px)')
   const [dirty, setDirty] = useState(false)
   const [renderEditor, setRenderEditor] = useState(false)
@@ -290,11 +309,16 @@ function Pen({ initialContent }) {
     cancelSetError,
   ] = useDebouncedState(undefined, 1000)
   const editorRef = useRef()
-  const [responsiveDesignMode, setResponsiveDesignMode] = useState(false)
+  const [responsiveDesignMode, setResponsiveDesignMode] = useState(
+    initialResponsiveSize ? true : false
+  )
   const [shouldClearOnUpdate, setShouldClearOnUpdate] = useState(true)
   const [isLoading, setIsLoading, setIsLoadingImmediate] = useDebouncedState(
     false,
     1000
+  )
+  const [responsiveSize, setResponsiveSize] = useState(
+    initialResponsiveSize || DEFAULT_RESPONSIVE_SIZE
   )
 
   useEffect(() => {
@@ -389,7 +413,10 @@ function Pen({ initialContent }) {
         }
 
         const newSize =
-          activePane === 'editor' && size.layout !== 'preview' ? windowSize : 0
+          (isMd && size.layout !== 'preview') ||
+          (!isMd && activePane === 'editor')
+            ? windowSize
+            : 0
 
         return {
           ...size,
@@ -408,13 +435,13 @@ function Pen({ initialContent }) {
 
   useEffect(() => {
     if (isMd) {
-      setRenderEditor(true)
+      if (size.layout !== 'preview') {
+        setRenderEditor(true)
+      }
     } else if (activePane === 'editor') {
       setRenderEditor(true)
-    } else {
-      previewRef.current.focus()
     }
-  }, [activePane, isMd])
+  }, [activePane, isMd, size.layout])
 
   useEffect(() => {
     if (resizing) {
@@ -448,12 +475,27 @@ function Pen({ initialContent }) {
     setDirty(false)
   }, [])
 
-  const onShareComplete = useCallback((ID) => {
-    setShouldClearOnUpdate(false)
-    Router.push(`/${ID}`).then(() => {
-      setShouldClearOnUpdate(true)
-    })
-  }, [])
+  const onShareComplete = useCallback(
+    (path) => {
+      setShouldClearOnUpdate(false)
+      Router.push(path).then(() => {
+        setShouldClearOnUpdate(true)
+      })
+    },
+    [size.layout, responsiveDesignMode, responsiveSize]
+  )
+
+  // initial state resets
+  useEffect(() => {
+    setSize((size) => ({ ...size, layout: initialLayout }))
+  }, [initialLayout])
+  useEffect(() => {
+    setResponsiveDesignMode(Boolean(initialResponsiveSize))
+    setResponsiveSize(initialResponsiveSize || DEFAULT_RESPONSIVE_SIZE)
+  }, [initialResponsiveSize])
+  useEffect(() => {
+    setActiveTab(initialActiveTab)
+  }, [initialActiveTab])
 
   const isDefaultContent =
     initialContent.html === defaultContent.html &&
@@ -462,18 +504,21 @@ function Pen({ initialContent }) {
 
   return (
     <>
-      <header className="relative z-10 flex-none py-3 px-5 sm:px-6 flex items-center">
-        <div className="flex items-center space-x-5">
-          <Logo />
+      <header className="relative z-10 flex-none py-3 px-5 sm:px-6 flex items-center space-x-4">
+        <div className="flex-auto flex items-center min-w-0 space-x-5">
+          <Logo className="flex-none" />
           <Share
             editorRef={editorRef}
             onShareStart={onShareStart}
             onShareComplete={onShareComplete}
             dirty={dirty}
-            initialID={initialContent.ID}
+            initialPath={initialPath}
+            layout={size.layout}
+            responsiveSize={responsiveDesignMode ? responsiveSize : undefined}
+            activeTab={activeTab}
           />
         </div>
-        <div className="flex items-center space-x-5 ml-auto">
+        <div className="flex items-center space-x-5">
           <div className="hidden md:flex items-center space-x-3.5">
             <HeaderButton
               isActive={size.layout === 'vertical'}
@@ -682,6 +727,8 @@ function Pen({ initialContent }) {
                 <Preview
                   ref={previewRef}
                   responsiveDesignMode={isMd && responsiveDesignMode}
+                  responsiveSize={responsiveSize}
+                  onChangeResponsiveSize={setResponsiveSize}
                   iframeClassName={resizing ? 'pointer-events-none' : ''}
                   className={
                     'mt-10 border-t border-gray-200 dark:border-gray-600 md:mt-0 md:border-0'
@@ -706,7 +753,17 @@ function Pen({ initialContent }) {
   )
 }
 
-export async function getServerSideProps({ params, res }) {
+export async function getServerSideProps({ params, res, query }) {
+  const layoutProps = {
+    initialLayout: ['vertical', 'horizontal', 'preview'].includes(query.layout)
+      ? query.layout
+      : 'vertical',
+    initialResponsiveSize: sizeToObject(query.size),
+    initialActiveTab: ['html', 'css', 'config'].includes(query.file)
+      ? query.file
+      : 'html',
+  }
+
   if (!params.slug) {
     res.setHeader(
       'cache-control',
@@ -715,6 +772,7 @@ export async function getServerSideProps({ params, res }) {
     return {
       props: {
         initialContent: defaultContent,
+        ...layoutProps,
       },
     }
   }
@@ -764,7 +822,15 @@ export async function getServerSideProps({ params, res }) {
 
       return {
         props: initialContent
-          ? { initialContent }
+          ? {
+              initialContent,
+              initialPath: `/${initialContent.ID}${getLayoutQueryString({
+                layout: query.layout,
+                responsiveSize: query.size,
+                file: query.file,
+              })}`,
+              ...layoutProps,
+            }
           : {
               errorCode: 404,
             },
@@ -778,4 +844,39 @@ export async function getServerSideProps({ params, res }) {
       }
     }
   }
+}
+
+function sizeToString(size) {
+  const obj = sizeToObject(size)
+  return obj ? `${obj.width}x${obj.height}` : null
+}
+
+function sizeToObject(size) {
+  if (!size) return null
+
+  if (typeof size === 'string') {
+    const match = size.match(/^([0-9]+)x([0-9]+)$/)
+    if (match === null) return false
+    const width = parseInt(match[1], 10)
+    const height = parseInt(match[2], 10)
+    return width >= 50 && height >= 50 ? { width, height } : null
+  }
+
+  return size.width >= 50 && size.height >= 50 ? size : null
+}
+
+function getLayoutQueryString({ layout, responsiveSize, file }) {
+  const params = {
+    layout: ['vertical', 'horizontal', 'preview'].includes(layout)
+      ? layout
+      : undefined,
+    size: sizeToString(responsiveSize),
+    file: ['html', 'css', 'config'].includes(file) ? file : undefined,
+  }
+  return Object.keys(params)
+    .filter((key) => params[key])
+    .reduce((acc, key, i) => {
+      if (i === 0) return `?${key}=${params[key]}`
+      return `${acc}&${key}=${params[key]}`
+    }, '')
 }
