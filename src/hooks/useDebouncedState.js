@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 
 export function useDebouncedState(initialValue, timeout = 100) {
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState({ value: initialValue })
   const [debouncedValue, setDebouncedValue] = useState(initialValue)
   const handler = useRef()
 
   useEffect(() => {
     handler.current = window.setTimeout(() => {
-      setDebouncedValue(value)
+      setDebouncedValue(value.value)
     }, timeout)
     return () => {
       window.clearTimeout(handler.current)
@@ -18,7 +18,9 @@ export function useDebouncedState(initialValue, timeout = 100) {
     // X
     debouncedValue,
     // setX
-    setValue,
+    (newValue) => {
+      setValue({ value: newValue })
+    },
     // setXImmediate
     (newValue) => {
       window.clearTimeout(handler.current)

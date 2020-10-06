@@ -292,6 +292,10 @@ function Pen({ initialContent }) {
   const editorRef = useRef()
   const [responsiveDesignMode, setResponsiveDesignMode] = useState(false)
   const [shouldClearOnUpdate, setShouldClearOnUpdate] = useState(true)
+  const [isLoading, setIsLoading, setIsLoadingImmediate] = useDebouncedState(
+    false,
+    1000
+  )
 
   useEffect(() => {
     setDirty(false)
@@ -318,6 +322,7 @@ function Pen({ initialContent }) {
       return setError({ ...validateResult.error, file: 'Config' })
     }
     cancelSetError()
+    setIsLoading(true)
     const { css, canceled, error } = await requestResponse(worker.current, {
       config: content.config,
       css: content.css,
@@ -325,6 +330,7 @@ function Pen({ initialContent }) {
     if (canceled) {
       return
     }
+    setIsLoadingImmediate(false)
     if (error) {
       setError(error)
       return
@@ -568,49 +574,79 @@ function Pen({ initialContent }) {
         {initialContent && typeof size.current !== 'undefined' ? (
           <>
             {(!isMd || size.layout !== 'preview') && (
-              <div className="flex flex-none px-5 sm:px-6 space-x-5 absolute z-10 top-0 left-0 -mt-px">
-                <TabButton
-                  isActive={
-                    (isMd || activePane === 'editor') && activeTab === 'html'
-                  }
-                  onClick={() => {
-                    setActivePane('editor')
-                    setActiveTab('html')
-                  }}
-                >
-                  HTML
-                </TabButton>
-                <TabButton
-                  isActive={
-                    (isMd || activePane === 'editor') && activeTab === 'css'
-                  }
-                  onClick={() => {
-                    setActivePane('editor')
-                    setActiveTab('css')
-                  }}
-                >
-                  CSS
-                </TabButton>
-                <TabButton
-                  isActive={
-                    (isMd || activePane === 'editor') && activeTab === 'config'
-                  }
-                  onClick={() => {
-                    setActivePane('editor')
-                    setActiveTab('config')
-                  }}
-                >
-                  Config
-                </TabButton>
-                {!isMd && (
+              <div
+                className="flex items-center flex-none pl-5 pr-4 sm:pl-6 absolute z-10 top-0 left-0 -mt-px"
+                style={{ width: size.current }}
+              >
+                <div className="flex space-x-5">
                   <TabButton
-                    isActive={activePane === 'preview'}
+                    isActive={
+                      (isMd || activePane === 'editor') && activeTab === 'html'
+                    }
                     onClick={() => {
-                      setActivePane('preview')
+                      setActivePane('editor')
+                      setActiveTab('html')
                     }}
                   >
-                    Preview
+                    HTML
                   </TabButton>
+                  <TabButton
+                    isActive={
+                      (isMd || activePane === 'editor') && activeTab === 'css'
+                    }
+                    onClick={() => {
+                      setActivePane('editor')
+                      setActiveTab('css')
+                    }}
+                  >
+                    CSS
+                  </TabButton>
+                  <TabButton
+                    isActive={
+                      (isMd || activePane === 'editor') &&
+                      activeTab === 'config'
+                    }
+                    onClick={() => {
+                      setActivePane('editor')
+                      setActiveTab('config')
+                    }}
+                  >
+                    Config
+                  </TabButton>
+                  {!isMd && (
+                    <TabButton
+                      isActive={activePane === 'preview'}
+                      onClick={() => {
+                        setActivePane('preview')
+                      }}
+                    >
+                      Preview
+                    </TabButton>
+                  )}
+                </div>
+                {isLoading && (
+                  <p className="ml-auto">
+                    <span className="sr-only">Loading</span>
+                    <svg
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      className="w-4 h-4 animate-spin"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </p>
                 )}
               </div>
             )}
