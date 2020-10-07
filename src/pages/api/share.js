@@ -1,28 +1,4 @@
-import * as AWS from 'aws-sdk'
-import shortid from 'shortid'
-
-const db = new AWS.DynamoDB.DocumentClient({
-  credentials: {
-    accessKeyId: process.env.TW_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.TW_AWS_SECRET_ACCESS_KEY,
-  },
-  region: process.env.TW_AWS_DEFAULT_REGION,
-})
-
-function put(item) {
-  return new Promise((resolve, reject) => {
-    db.put(
-      {
-        TableName: process.env.TW_TABLE_NAME,
-        Item: item,
-      },
-      (err, data) => {
-        if (err) reject(err)
-        resolve(data)
-      }
-    )
-  })
-}
+import { put } from '../../utils/database'
 
 export default async function share(req, res) {
   if (req.method !== 'POST') {
@@ -40,11 +16,8 @@ export default async function share(req, res) {
     return res.end()
   }
 
-  const ID = shortid.generate()
-
   try {
-    await put({
-      ID,
+    const { ID } = await put({
       html: req.body.html,
       css: req.body.css,
       config: req.body.config,
