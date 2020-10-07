@@ -6,37 +6,6 @@ import extractClasses from './extractClasses'
 import { removeFunctions } from '../utils/object'
 import { getVariants } from '../utils/getVariants'
 import versions from '../preval/versions'
-const applyComplexClasses = require('tailwindcss/lib/flagged/applyComplexClasses')
-
-// TODO
-let _applyComplexClasses = applyComplexClasses.default
-applyComplexClasses.default = (...args) => {
-  let fn = _applyComplexClasses(...args)
-  return (css) => {
-    css.walkRules((rule) => {
-      const newSelector = rule.selector.replace(
-        /__TWSEP__(.*?)__TWSEP__/g,
-        '$1'
-      )
-      if (newSelector !== rule.selector) {
-        rule.before(
-          postcss.comment({ text: '__ORIGINAL_SELECTOR__:' + rule.selector })
-        )
-        rule.selector = newSelector
-      }
-    })
-    fn(css)
-    css.walkComments((comment) => {
-      if (comment.text.startsWith('__ORIGINAL_SELECTOR__:')) {
-        comment.next().selector = comment.text.replace(
-          /^__ORIGINAL_SELECTOR__:/,
-          ''
-        )
-        comment.remove()
-      }
-    })
-  }
-}
 
 let current
 
@@ -161,6 +130,43 @@ addEventListener('message', async (event) => {
   try {
     const separator = mod.exports.separator || ':'
     mod.exports.separator = `__TWSEP__${separator}__TWSEP__`
+
+    // TODO
+    const applyComplexClasses = require('tailwindcss/lib/flagged/applyComplexClasses')
+    if (!applyComplexClasses.default.__patched) {
+      let _applyComplexClasses = applyComplexClasses.default
+      applyComplexClasses.default = (...args) => {
+        let fn = _applyComplexClasses(...args)
+        return (css) => {
+          css.walkRules((rule) => {
+            const newSelector = rule.selector.replace(
+              /__TWSEP__(.*?)__TWSEP__/g,
+              '$1'
+            )
+            if (newSelector !== rule.selector) {
+              rule.before(
+                postcss.comment({
+                  text: '__ORIGINAL_SELECTOR__:' + rule.selector,
+                })
+              )
+              rule.selector = newSelector
+            }
+          })
+          fn(css)
+          css.walkComments((comment) => {
+            if (comment.text.startsWith('__ORIGINAL_SELECTOR__:')) {
+              comment.next().selector = comment.text.replace(
+                /^__ORIGINAL_SELECTOR__:/,
+                ''
+              )
+              comment.remove()
+            }
+          })
+        }
+      }
+      applyComplexClasses.default.__patched = true
+    }
+
     const { css, root } = await postcss([
       tailwindcss(mod.exports),
     ]).process(event.data.css, { from: undefined })
