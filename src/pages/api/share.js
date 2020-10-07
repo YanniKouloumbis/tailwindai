@@ -1,32 +1,4 @@
-import shortid from 'shortid'
-
-function put(item) {
-  return new Promise((resolve, reject) => {
-    fetch(process.env.TW_API_URL + '/api/playgrounds/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uuid: item.ID,
-        html: item.html,
-        css: item.css,
-        config: item.config,
-      }),
-    })
-      .then(() => {
-        resolve({
-          uuid: item.ID,
-          html: item.html,
-          css: item.css,
-          config: item.config,
-        })
-      })
-      .catch((err) => {
-        reject(err)
-      })
-  })
-}
+import { put } from '../../utils/database'
 
 export default async function share(req, res) {
   if (req.method !== 'POST') {
@@ -44,11 +16,8 @@ export default async function share(req, res) {
     return res.end()
   }
 
-  const ID = shortid.generate()
-
   try {
-    await put({
-      ID,
+    const { ID } = await put({
       html: req.body.html,
       css: req.body.css,
       config: req.body.config,

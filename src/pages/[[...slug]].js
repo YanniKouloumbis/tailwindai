@@ -23,7 +23,7 @@ import { Share } from '../components/Share'
 import { TabBar } from '../components/TabBar'
 import { sizeToObject } from '../utils/size'
 import { getLayoutQueryString } from '../utils/getLayoutQueryString'
-import { get } from '../utils/dynamodb'
+import { get } from '../utils/database'
 
 const HEADER_HEIGHT = 60 - 1
 const TAB_BAR_HEIGHT = 40
