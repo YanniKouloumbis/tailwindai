@@ -43,6 +43,10 @@ export function Share({
             config: editorRef.current.getValue('config'),
           }),
         })
+        .then((res) => {
+          if (!res.ok) throw Error(res)
+          return res
+        })
         .then((res) => res.json())
         .then((res) => {
           if (current) {
@@ -64,6 +68,11 @@ export function Share({
                   setState({ state: 'disabled', path: newPath })
                 }
               })
+          }
+        })
+        .catch(() => {
+          if (current) {
+            setState({ state: 'error' })
           }
         })
     } else if (state === 'copied') {
@@ -147,6 +156,11 @@ export function Share({
           Copied!
         </span>
       </button>
+      {state === 'error' && (
+        <p className="text-sm leading-5 font-medium text-gray-500 dark:text-gray-400 truncate">
+          Whoops! Something went wrong. Please try again.
+        </p>
+      )}
       {(state === 'copied' || state === 'disabled') && (
         <button
           type="button"
