@@ -7,6 +7,7 @@ import extractClasses from './extractClasses'
 import { removeFunctions } from '../utils/object'
 import { getVariants } from '../utils/getVariants'
 import versions from '../preval/versions'
+import { klona } from 'klona/full'
 
 let current
 
@@ -176,7 +177,7 @@ addEventListener('message', async (event) => {
     mod.exports.separator = separator
     state.classNames = await extractClasses(root)
     state.separator = separator
-    state.config = resolveConfig(mod.exports)
+    state.config = resolveConfig(klona(mod.exports))
     state.variants = getVariants({ config: state.config, postcss })
     removeFunctions(state.config)
     state.version = versions.tailwindcss
