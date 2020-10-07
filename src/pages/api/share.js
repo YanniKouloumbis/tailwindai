@@ -1,26 +1,30 @@
-import * as AWS from 'aws-sdk'
 import shortid from 'shortid'
-
-const db = new AWS.DynamoDB.DocumentClient({
-  credentials: {
-    accessKeyId: process.env.TW_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.TW_AWS_SECRET_ACCESS_KEY,
-  },
-  region: process.env.TW_AWS_DEFAULT_REGION,
-})
 
 function put(item) {
   return new Promise((resolve, reject) => {
-    db.put(
-      {
-        TableName: process.env.TW_TABLE_NAME,
-        Item: item,
+    fetch(process.env.TW_API_URL + '/api/playgrounds/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      (err, data) => {
-        if (err) reject(err)
-        resolve(data)
-      }
-    )
+      body: JSON.stringify({
+        uuid: item.ID,
+        html: item.html,
+        css: item.css,
+        config: item.config,
+      }),
+    })
+      .then(() => {
+        resolve({
+          uuid: item.ID,
+          html: item.html,
+          css: item.css,
+          config: item.config,
+        })
+      })
+      .catch((err) => {
+        reject(err)
+      })
   })
 }
 

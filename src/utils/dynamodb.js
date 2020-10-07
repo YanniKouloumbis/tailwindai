@@ -1,18 +1,18 @@
-import * as AWS from 'aws-sdk'
-
-const database = new AWS.DynamoDB.DocumentClient({
-  credentials: {
-    accessKeyId: process.env.TW_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.TW_AWS_SECRET_ACCESS_KEY,
-  },
-  region: process.env.TW_AWS_DEFAULT_REGION,
-})
-
-export function get(TableName, Key) {
+export function get(Key) {
   return new Promise((resolve, reject) => {
-    database.get({ TableName, Key }, (err, data) => {
-      if (err) reject(err)
-      resolve(data)
-    })
+    fetch(process.env.TW_API_URL + '/api/playgrounds/' + Key.ID)
+      .then((response) => {
+        return response.json()
+      })
+      .then((data) => {
+        console.log(data)
+        resolve({
+          Item: { ...data, ID: data.uuid },
+        })
+      })
+      .catch((err) => {
+        console.log(err)
+        reject(err)
+      })
   })
 }

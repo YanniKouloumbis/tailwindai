@@ -398,7 +398,7 @@ export async function getServerSideProps({ params, res, query }) {
   }
 
   try {
-    const { Item: initialContent } = await get(process.env.TW_TABLE_NAME, {
+    const { Item: initialContent } = await get({
       ID: params.slug[0],
     })
 
