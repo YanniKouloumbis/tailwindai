@@ -1,5 +1,6 @@
 import postcss from 'postcss'
 import tailwindcss from 'tailwindcss'
+import autoprefixer from 'autoprefixer'
 import featureFlags from 'tailwindcss/lib/featureFlags'
 import resolveConfig from 'tailwindcss/resolveConfig'
 import extractClasses from './extractClasses'
@@ -170,6 +171,7 @@ addEventListener('message', async (event) => {
 
     const { css, root } = await postcss([
       tailwindcss(mod.exports),
+      autoprefixer(),
     ]).process(event.data.css, { from: undefined })
     mod.exports.separator = separator
     state.classNames = await extractClasses(root)
