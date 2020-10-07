@@ -85,15 +85,15 @@ export function createMonacoEditor({
         html:
           id === 'html' && typeof newContent !== 'undefined'
             ? newContent
-            : html.getModel()?.getValue() || initialContent.html,
+            : html.getModel()?.getValue() ?? initialContent.html,
         css:
           id === 'css' && typeof newContent !== 'undefined'
             ? newContent
-            : css.getModel()?.getValue() || initialContent.css,
+            : css.getModel()?.getValue() ?? initialContent.css,
         config:
           id === 'config' && typeof newContent !== 'undefined'
             ? newContent
-            : config.getModel()?.getValue() || initialContent.config,
+            : config.getModel()?.getValue() ?? initialContent.config,
       })
     }
   }
@@ -124,7 +124,7 @@ export function createMonacoEditor({
     editor,
     documents,
     getValue(doc) {
-      return documents[doc].getModel()?.getValue() || initialContent[doc]
+      return documents[doc].getModel()?.getValue() ?? initialContent[doc]
     },
     reset(content) {
       shouldTriggerOnChange = false
