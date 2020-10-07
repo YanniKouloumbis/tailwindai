@@ -74,7 +74,6 @@ module.exports = () => {
 </div>\n`
   const css = '@tailwind base;\n@tailwind components;\n@tailwind utilities;\n'
   const config = `module.exports = {
-  purge: [],
   theme: {
     extend: {
       spacing: {

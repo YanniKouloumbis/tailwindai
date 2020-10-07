@@ -130,6 +130,7 @@ addEventListener('message', async (event) => {
   try {
     const separator = mod.exports.separator || ':'
     mod.exports.separator = `__TWSEP__${separator}__TWSEP__`
+    delete mod.exports.purge
 
     // TODO
     const applyComplexClasses = require('tailwindcss/lib/flagged/applyComplexClasses')
