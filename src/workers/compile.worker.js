@@ -83,9 +83,9 @@ addEventListener('message', async (event) => {
             line.replace(
               /\brequire\(([^(]*)\)/g,
               (_m, id) =>
-                `await require(${id.trim() === '' ? 'undefined' : id}, ${
+                `(await require(${id.trim() === '' ? 'undefined' : id}, ${
                   i + 1
-                }, ${JSON.stringify(builtinPlugins)})`
+                }, ${JSON.stringify(builtinPlugins)}))`
             )
           )
           .join('\n') +
