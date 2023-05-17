@@ -12,6 +12,7 @@
     "@tailwindcss/ui": "^0.6.2",
     "@typescript-eslint/eslint-plugin": "2.x",
     "@typescript-eslint/parser": "2.x",
+    "@whop-sdk/core": "^0.0.4",
     "autoprefixer": "^9.8.6",
     "babel-eslint": "10.x",
     "babel-plugin-preval": "^5.0.0",
