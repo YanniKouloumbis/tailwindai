@@ -7,14 +7,13 @@ const { loopWhile } = require('deasync')
 
 module.exports = () => {
   const html = `<!--
-  Welcome to Tailwind Play, the official Tailwind CSS playground!
+  Thank you to TailwindLabs for the TailwindPlay standard!
+  
+  Welcome to Skylight AI Play, a Tailwind CSS playground powered by windowai.io.
 
   Everything here works just like it does when you're running Tailwind locally
   with a real build pipeline. You can customize your config file, use features
   like \`@apply\`, or even add third-party plugins.
-
-  Feel free to play with this example if you're just learning, or trash it and
-  start from scratch if you know enough to be dangerous. Have fun!
 -->
 <div class="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
   <div class="relative py-3 sm:max-w-xl sm:mx-auto">
@@ -26,71 +25,37 @@ module.exports = () => {
         </div>
         <div class="divide-y divide-gray-200">
           <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-            <p>An advanced online playground for Tailwind CSS, including support for things like:</p>
-            <ul class="list-disc space-y-2">
-              <li class="flex items-start">
-                <span class="h-6 flex items-center sm:h-7">
-                  <svg class="flex-shrink-0 h-5 w-5 text-teal-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-                <p class="ml-2">
-                  Customizing your
-                  <code class="text-sm font-bold text-gray-900">tailwind.config.js</code> file
-                </p>
+            <p><strong>Skylight AI</strong> ✨ is the best place to find <a href="https://windowai.io/" class="text-teal-600 hover:text-teal-700">window.ai</a> enabled applications!</p>
+            <ul class="list-disc space-y-2 ml-5">
+              <li>
+                <p>Find apps at <a href="https://app.skylightai.io/" class="text-teal-600 hover:text-teal-700">app.skylightai.io</a></p>
               </li>
-              <li class="flex items-start">
-                <span class="h-6 flex items-center sm:h-7">
-                  <svg class="flex-shrink-0 h-5 w-5 text-teal-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-                <p class="ml-2">
-                  Extracting classes with
-                  <code class="text-sm font-bold text-gray-900">@apply</code>
-                </p>
+              <li>
+                <p>Post apps at <a href="https://dash.skylightai.io/" class="text-teal-600 hover:text-teal-700">dash.skylightai.io</a></p>
               </li>
-              <li class="flex items-start">
-                <span class="h-6 flex items-center sm:h-7">
-                  <svg class="flex-shrink-0 h-5 w-5 text-teal-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-                <p class="ml-2">Code completion with instant preview</p>
+              <li>
+                <p>Make your window.ai apps monetizable and hook into skylight's simple oauth system! ex. this app! <a href="https://github.com/YanniKouloumbis/skylight-template" class="text-teal-600 hover:text-teal-700">Documentation</a></p>
               </li>
             </ul>
-            <p>Perfect for learning how the framework works, prototyping a new idea, or creating a demo to share online.</p>
           </div>
-          <div class="pt-6 text-base leading-6 font-bold sm:text-lg sm:leading-7">
-            <p>Want to dig deeper into Tailwind?</p>
-            <p>
-              <a href="https://tailwindcss.com" class="text-teal-600 hover:text-teal-700"> Read the docs &rarr; </a>
-            </p>
+          <div class="pt-6 text-base leading-6 font-bold sm:leading-7">
+            <p>By <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni</a> & <a href="https://twitter.com/nolangclement" class="text-teal-600 hover:text-teal-700">Nolan</a></p>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>\n`
+</div>
+
+
+\n`
   const css = '@tailwind base;\n@tailwind components;\n@tailwind utilities;\n'
   const config = `module.exports = {
   theme: {
-    extend: {
-      spacing: {
-        7: '1.75rem',
-      },
-      borderRadius: {
-        xl: '12px',
-        '2xl': '16px',
-        '3xl': '24px',
-      },
-      rotate: {
-        '-6': '-6deg',
-      },
-    },
+    extend: {},
+    variants: {},
+    plugins: [],
   },
-  variants: {},
-  plugins: [],
 }\n`
 
   let compiledCss

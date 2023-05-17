@@ -8,8 +8,9 @@ export function validateJavaScript(script) {
       errorEvent.preventDefault()
       window.removeEventListener('error', onError)
       $script.parentNode.removeChild($script)
-      if (errorEvent.message.indexOf('Parsing successful') !== -1) {
+      if (errorEvent.message.indexOf('successful') !== -1) {
         resolve({ isValid: true })
+        console.log("success parsing")
         return
       }
       resolve({

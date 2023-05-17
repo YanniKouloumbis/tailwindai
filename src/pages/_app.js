@@ -1,10 +1,10 @@
 import '../css/main.css'
 import Head from 'next/head'
 
-const URL = 'https://play.tailwindcss.com'
-const TITLE = 'Tailwind Play'
+const URL = 'https://tailwind.skylightai.io'
+const TITLE = 'Skylight AI ✨ Tailwind Playground'
 const DESCRIPTION =
-  "An advanced online playground for Tailwind CSS that lets you use all of Tailwind's build-time features directly in the browser."
+  "An advanced online playground for Tailwind CSS that lets you generate Tailwind CSS code using window.ai and show it directly in the browser."
 
 if (typeof window !== 'undefined') {
   require('../workers/subworkers')
