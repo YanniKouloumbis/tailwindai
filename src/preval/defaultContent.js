@@ -34,7 +34,7 @@ module.exports = () => {
                 <p>Post apps at <a href="https://dash.skylightai.io/" class="text-teal-600 hover:text-teal-700">dash.skylightai.io</a></p>
               </li>
               <li>
-                <p>Make your window.ai apps monetizable and hook into skylight's simple oauth system! ex. this app! <a href="https://github.com/YanniKouloumbis/skylight-template" class="text-teal-600 hover:text-teal-700">Documentation</a></p>
+                <p>Make your window.ai apps monetizable and hook into skylight's simple oauth system! <a href="https://github.com/YanniKouloumbis/skylight-template" class="text-teal-600 hover:text-teal-700">Documentation</a></p>
               </li>
             </ul>
           </div>
