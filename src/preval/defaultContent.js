@@ -23,7 +23,7 @@ module.exports = () => {
         <div>
           <img src="/img/logo.svg" class="h-7 sm:h-8" />
         </div>
-        <div class="divide-y divide-gray-200">
+        <div className="divide-y divide-gray-200">
           <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
             <p><strong>Skylight AI</strong> ✨ is the best place to find <a href="https://windowai.io/" class="text-teal-600 hover:text-teal-700">window.ai</a> applications!</p>
             <ul class="list-disc space-y-2 ml-5">
@@ -34,13 +34,14 @@ module.exports = () => {
                 <p>Post apps at <a href="https://dash.skylightai.io/" class="text-teal-600 hover:text-teal-700">dash.skylightai.io</a></p>
               </li>
               <li>
-                <p>Make your window.ai apps monetizable and hook into skylight's simple oauth system! <a href="https://github.com/YanniKouloumbis/skylight-template" class="text-teal-600 hover:text-teal-700">Documentation</a></p>
+                <p>Make your window.ai apps monetizable and hook into skylight's simple oauth system! <a href="https://github.com/YanniKouloumbis/skylight-template" className="text-teal-600 hover:text-teal-700">Documentation</a></p>
               </li>
             </ul>
           </div>
           <div class="pt-6 text-base leading-6 font-bold sm:leading-7">
-            <p>Window AI x Tailwind UI - Created by <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni</a></p>
+            <p>Window AI x Tailwind UI - By <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni</a></p> 
           </div>
+          <p>Based upon work by <a href="https://github.com/tailwindlabs/tailwindcss-playground" class="text-teal-600 hover:text-teal-700">TailwindLabs</a>.
         </div>
       </div>
     </div>
