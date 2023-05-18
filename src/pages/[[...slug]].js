@@ -444,7 +444,7 @@ function Pen({
                         ? { css: defaultContent.compiledCss }
                         : {}),
                     })
-                    compileNow(initialContent)
+                    // compileNow(initialContent)
                   }}
                 />
                 <ErrorOverlay error={error} />
