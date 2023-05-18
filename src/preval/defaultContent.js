@@ -39,7 +39,7 @@ module.exports = () => {
             </ul>
           </div>
           <div class="pt-6 text-base leading-6 font-bold sm:leading-7">
-            <p>Window AI x Tailwind UI - By <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni</a></p> 
+            <p>Window AI x Tailwind UI - By <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni Kouloumbis</a></p> 
           </div>
           <p>Based upon work by <a href="https://github.com/tailwindlabs/tailwindcss-playground" class="text-teal-600 hover:text-teal-700">TailwindLabs</a>.
         </div>

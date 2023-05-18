@@ -96,6 +96,27 @@ function Pen({
     //   return
     // }
     // code generation logic here, for example:
+    if(!window.ai){
+      toast.custom(
+        <div className="bg-indigo-800 p-5 rounded-lg shadow-lg flex flex-col items-center space-y-4 transition-all duration-300 ease-in-out hover:shadow-xl">
+          <p className="text-lg font-semibold text-indigo-200"> Window.ai was not detected! Please install the window.ai extension.
+          </p>
+          <a
+            href="https://windowai.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-400 transition-colors duration-300 ease-in-out"
+          >
+            Visit windowai.io
+          </a>
+        </div>,
+        {
+          id: 'window-ai-not-detected',
+          duration: 3000,
+        },
+      );
+      return;
+    }
     try{
       setGenerationLoading(true)
       const [ response ]  = await window.ai.generateText(
