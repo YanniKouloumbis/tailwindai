@@ -25,7 +25,7 @@ module.exports = () => {
         </div>
         <div class="divide-y divide-gray-200">
           <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-            <p><strong>Skylight AI</strong> ✨ is the best place to find <a href="https://windowai.io/" class="text-teal-600 hover:text-teal-700">window.ai</a> enabled applications!</p>
+            <p><strong>Skylight AI</strong> ✨ is the best place to find <a href="https://windowai.io/" class="text-teal-600 hover:text-teal-700">window.ai</a> applications!</p>
             <ul class="list-disc space-y-2 ml-5">
               <li>
                 <p>Find apps at <a href="https://app.skylightai.io/" class="text-teal-600 hover:text-teal-700">app.skylightai.io</a></p>
