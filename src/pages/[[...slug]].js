@@ -360,6 +360,7 @@ function Pen({
     placeholder='Enter your design specification' />
 
   <button
+  disabled={generationLoading}
   onClick={() => handleGenerateCode()}
   className="text-white font-semibold py-2 px-4 rounded-lg shadow-lg bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
 >

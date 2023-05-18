@@ -39,7 +39,7 @@ module.exports = () => {
             </ul>
           </div>
           <div class="pt-6 text-base leading-6 font-bold sm:leading-7">
-            <p>By <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni</a> & <a href="https://twitter.com/nolangclement" class="text-teal-600 hover:text-teal-700">Nolan</a></p>
+            <p>Created by <a href="https://twitter.com/ykouloumbis" class="text-teal-600 hover:text-teal-700">Yanni</a></p>
           </div>
         </div>
       </div>
