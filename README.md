@@ -1,4 +1,4 @@
-## [Skylight AI](skylightai.io) ✨ x [window.ai](windowai.io) x Tailwind CSS
+## [Skylight AI](https://skylightai.io) ✨ x [window.ai](https://windowai.io) x Tailwind CSS
 Leverage window.ai to generate tailwind css components, and preview them, directly in the browser!
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/zeit/next.js/tree/canary/packages/create-next-app).
