@@ -91,11 +91,6 @@ function Pen({
   const [generatedCode, setGeneratedCode] = useState(initialContent);
   const [generationLoading, setGenerationLoading] = useState(false);
   const handleGenerateCode = async () => {
-    // if(!user){
-    //   toast.error("You must be logged in to generate code.")
-    //   return
-    // }
-    // code generation logic here, for example:
     if(!window.ai){
       toast.custom(
         <div className="bg-indigo-800 p-5 rounded-lg shadow-lg flex flex-col items-center space-y-4 transition-all duration-300 ease-in-out hover:shadow-xl">
@@ -122,7 +117,7 @@ function Pen({
       const [ response ]  = await window.ai.generateText(
         { messages: [
           {role: "system", content: "RESPOND ONLY IN TAILWINDUICSS HTML! USE EMOJIS IF POSSIBLE INSTEAD OF WRITING OUT WHOLE SVGS. DO NOT ADD COMMENTARY. DO NOT RESPOND IN MARKDOWN. YOUR OUTPUT WILL BE INPUT FOR A TAILWINDUICSS HTML FILE."},
-          {role: "user", content: `based on the below design specification, output the tailwinduicss html code that corresponds to the design specification. you can use any html or tailwindcss classes. do not add any commentary, just output the html code, as if it is going to be input into a file. design spec: ${prompt}`}] }
+          {role: "user", content: `RESPOND IN TAILWINDUICSS HTML. based on the below design specification, output the tailwinduicss html code that corresponds to the design specification. you can use any html or tailwindcss classes. do not add any commentary, just output the html code, as if it is going to be input into a file. design spec: ${prompt} remember, do not add commentary, do not respond in markdown, and only respond in HTML`}] }
       )
       const newGeneratedCode = {
         html: response.message.content,  // assuming prompt is a string
