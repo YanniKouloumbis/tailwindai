@@ -1,8 +1,6 @@
 ## Tailwind AI x Tailwind CSS
 Leverage GPT models to generate tailwind css components, preview them, and refine them, directly in the browser!
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/zeit/next.js/tree/canary/packages/create-next-app).
-
 ## Getting Started
 
 Install all the packages.
