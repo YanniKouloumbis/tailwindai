@@ -1,4 +1,4 @@
-## Tailwind AI
+## ✨ Tailwind AI
 Leverage GPT models to generate tailwind css components, preview them, and refine them, directly in the browser!
 
 ## Getting Started
